@@ -52,22 +52,10 @@
 
 #define BUFFERSIZE 128
 
-#define VP 18.1
-#define VI 0.024
-// #define VI 0.0
-#define VD 50.73
-#define VMAXINTERGRAL 10
-#define VMAXOutput 14000
-// 0.1742,0.000000001,0.08
-#define SP 0.3742
-#define SI 0.00000001
-#define SD 0.08
-#define SMAXINTERGRAL 1
-#define SMAXOutput 8000
 
-#define GVP 1200000.0f
-#define GVI 1000.0f
-#define GVD 100.0f
+#define GVP 40.0f
+#define GVI 0.0f
+#define GVD 2.0f
 // #define GVI 1000.0f
 // #define GVD 70.0f
 #define GVMAXINTERGRAL 3000
@@ -89,13 +77,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern motor_measure_t motor_chassis[7];
-PID_TypeDef Motor_VPID[4] = {0};
-PID_TypeDef Motor_SPID[4] = {0};
-PID_TypeDef Gimbal_VPID = {0};
-PID_TypeDef Gimbal_SPID = {0};
+// PID_TypeDef Gimbal_VPID = {0};
+// PID_TypeDef Gimbal_SPID = {0};
 char rxmessage[BUFFERSIZE] = {0};
-
+uint8_t judgeMessage[512] = {0};
 uint8_t remoteMessage[36] = {0};
 uint8_t status = 0;
 /* USER CODE END PV */
@@ -119,6 +104,10 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   else if (huart->Instance == USART3)
   {
     HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t *)remoteMessage, 36);
+  }
+  else if (huart->Instance == USART1)
+  {
+//		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)judgeMessage, 512);
   }
 }
 /* USER CODE END 0 */
@@ -174,14 +163,11 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-  for (int i = 0; i < 4; i++)
-  {
-    PID_Init(&Motor_VPID[i], VP, VI, VD, VMAXOutput, VMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
-  }
-  PID_Init(&Gimbal_SPID, GSP, GSI, GSD, GSMAXOutput, GSMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
-  PID_Init(&Gimbal_VPID, GVP, GVI, GVD, GVMAXOutput, GVMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
+  // PID_Init(&Gimbal_SPID, GSP, GSI, GSD, GSMAXOutput, GSMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
+  // PID_Init(&Gimbal_VPID, GVP, GVI, GVD, GVMAXOutput, GVMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)judgeMessage, 512);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t *)remoteMessage, 36);
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
+//  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
   can_filter_init();
   HAL_TIM_Base_Start_IT(&htim5);
   /* USER CODE END 2 */
@@ -256,7 +242,7 @@ void SystemClock_Config(void)
 volatile unsigned long ulHighFrequencyTimerTicks;
 int fputc(int ch, FILE *f)
 {
-  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0x10);
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0x20);
   return ch;
 }
 /* USER CODE END 4 */

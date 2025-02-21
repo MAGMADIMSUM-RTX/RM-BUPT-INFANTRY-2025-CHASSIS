@@ -27,7 +27,7 @@ void yaw_task(void *argument)
 {
     osDelay(10);
     TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(1);
+    const TickType_t xFrequency = pdMS_TO_TICKS(5);
     int16_t cboard_rx = 0;
     uint16_t gimbalyawRawAngle = 0;
 

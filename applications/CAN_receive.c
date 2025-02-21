@@ -2,6 +2,7 @@
 #include "CAN_receive.h"
 #include "main.h"
 #include <string.h>
+#include "chassis_behaviour.h"
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -29,7 +30,8 @@ static uint8_t chassis_can_send_data[8];
 int16_t chassis1RawCircle = 0, chassis2RawCircle = 0, chassis3RawCircle = 0, chassis4RawCircle = 0, gimbalyawRawCircle = 0;
 
 CAN_RxHeaderTypeDef cboard_header;
-uint8_t cboard_data[8];
+
+can_send_data_channel_u cboard_data,cboard_data_temp;
 
 extern uint8_t online_flag;
 
@@ -41,10 +43,9 @@ extern uint8_t online_flag;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
   CAN_RxHeaderTypeDef rx_header;
-  uint8_t rx_data[8];
-  uint8_t txmessage[20];
+  uint8_t rx_data[sizeof(can_send_data_channel_u)];
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
-  static int chassis1RawAngle = 0, chassis2RawAngle = 0, chassis3RawAngle = 0, chassis4RawAngle = 0, gimbalyawRawAngle = 0;
+  
   switch (rx_header.StdId)
   {
   case CAN_3508_M1_ID:
@@ -66,10 +67,18 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
   default:
   {
+    memcpy(&cboard_data_temp, rx_data, sizeof(can_send_data_channel_u));
+//		if(cboard_data_temp.data.channel_0>=670||cboard_data_temp.data.channel_2>=670||cboard_data_temp.data.channel_3>=670
+//			||cboard_data_temp.data.channel_0<=-670||cboard_data_temp.data.channel_2<=-670||cboard_data_temp.data.channel_3<=-670)
+		if(cboard_data_temp.data.mode!=0){
     cboard_header = rx_header;
-    memcpy(cboard_data, rx_data, sizeof(rx_data));
-    online_flag |= (uint8_t)0x80;
-    break;
+//		for(int i=0;i<sizeof(can_send_data_channel_u);i++)
+//			cboard_data.data_1[i]=rx_data[i];
+    memcpy(&cboard_data, rx_data, sizeof(can_send_data_channel_u));
+////		if(cboard_data.data.mode!=RobotState_e_Powerless)
+			online_flag |= (uint8_t)0x80;
+//		printf("%d\n",cboard_data.data.mode);
+    break;}
   }
   }
 

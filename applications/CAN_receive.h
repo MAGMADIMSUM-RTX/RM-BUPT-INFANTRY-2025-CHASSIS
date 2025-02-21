@@ -5,7 +5,7 @@
 #include "struct_typedef.h"
 
 #define CHASSIS_CAN hcan2
-#define GIMBAL_CAN hcan1
+#define GIMBAL_CAN hcan2
 
 typedef enum
 {

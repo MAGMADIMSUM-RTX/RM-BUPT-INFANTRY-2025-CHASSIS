@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "chassis_behaviour.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,7 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CHECK_ONLINE_TIMEOUT 100
+#define CHECK_ONLINE_TIMEOUT 500
 #define CHECK_ONLINE_TASK_DELAY 5
 #define CHECK_ONLINE_TIMEOUT_COUNT (CHECK_ONLINE_TIMEOUT / CHECK_ONLINE_TASK_DELAY)
 /* USER CODE END PD */
@@ -55,13 +55,14 @@ typedef struct
 
 is_motor_online Motor_online;
 uint8_t online_flag = 0;
+extern chassis_behaviour_e chassis_behaviour;
 /* USER CODE END Variables */
 /* Definitions for check_online_ta */
 osThreadId_t check_online_taHandle;
 const osThreadAttr_t check_online_ta_attributes = {
   .name = "check_online_ta",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 /* Definitions for LED */
 osThreadId_t LEDHandle;
@@ -75,28 +76,35 @@ osThreadId_t ChassisHandle;
 const osThreadAttr_t Chassis_attributes = {
   .name = "Chassis",
   .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for Yaw */
-osThreadId_t YawHandle;
-const osThreadAttr_t Yaw_attributes = {
-  .name = "Yaw",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityRealtime,
 };
 /* Definitions for uart */
 osThreadId_t uartHandle;
 const osThreadAttr_t uart_attributes = {
   .name = "uart",
   .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityHigh5,
 };
 /* Definitions for INS */
 osThreadId_t INSHandle;
 const osThreadAttr_t INS_attributes = {
   .name = "INS",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for detect */
+osThreadId_t detectHandle;
+const osThreadAttr_t detect_attributes = {
+  .name = "detect",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for referee_usart */
+osThreadId_t referee_usartHandle;
+const osThreadAttr_t referee_usart_attributes = {
+  .name = "referee_usart",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,9 +115,10 @@ const osThreadAttr_t INS_attributes = {
 void check_online(void *argument);
 extern void led_task(void *argument);
 extern void chassis_task(void *argument);
-extern void yaw_task(void *argument);
 extern void uart_task(void *argument);
 extern void INS_task(void *argument);
+extern void detect_task(void *argument);
+extern void referee_usart_task(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -150,14 +159,17 @@ void MX_FREERTOS_Init(void) {
   /* creation of Chassis */
   ChassisHandle = osThreadNew(chassis_task, NULL, &Chassis_attributes);
 
-  /* creation of Yaw */
-  YawHandle = osThreadNew(yaw_task, NULL, &Yaw_attributes);
-
   /* creation of uart */
   uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
 
   /* creation of INS */
-  INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
+//  INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
+
+  /* creation of detect */
+  detectHandle = osThreadNew(detect_task, NULL, &detect_attributes);
+
+  /* creation of referee_usart */
+  referee_usartHandle = osThreadNew(referee_usart_task, NULL, &referee_usart_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -171,22 +183,22 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_check_online */
 /**
-  * @brief  Function implementing the check_online_ta thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the check_online_ta thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_check_online */
-void check_online(void *argument)
+__weak void check_online(void *argument)
 {
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN check_online */
   /* Infinite loop */
-	osThreadTerminate(ChassisHandle);
-    osThreadTerminate(LEDHandle);
-    osThreadTerminate(YawHandle);
-  while(1){
-
+  osThreadTerminate(ChassisHandle);
+  osThreadTerminate(LEDHandle);
+//  osThreadTerminate(YawHandle);
+  while (1)
+  {
     for (int i = 0; i < 8; i++)
     {
       if (online_flag & (1 << i)) // ¼ì²âµ½ÔÚÏß
@@ -238,9 +250,11 @@ void check_online(void *argument)
           // }
           if (i == 7)
           {
+            chassis_behaviour = CHASSIS_NO_MOVE;
+            osDelay(200);
+            CAN_cmd_chassis(0, 0, 0, 0);
             osThreadTerminate(ChassisHandle);
             osThreadTerminate(LEDHandle);
-            CAN_cmd_chassis(0, 0, 0, 0);
           }
         }
       }
