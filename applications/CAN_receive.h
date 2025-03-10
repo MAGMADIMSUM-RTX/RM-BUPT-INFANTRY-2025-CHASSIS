@@ -1,7 +1,17 @@
+/*
+ * @Author: MAGMADIMSUM madmaliu@bupt.edu.cn
+ * @Date: 2025-02-17 16:23:39
+ * @LastEditors: MAGMADIMSUM madmaliu@bupt.edu.cn
+ * @LastEditTime: 2025-02-21 20:38:58
+ * @FilePath: \chassis\applications\CAN_receive.h
+ * @Description: 
+ * 
+ */
 
 #ifndef CAN_RECEIVE_H
 #define CAN_RECEIVE_H
 
+#include "main.h"
 #include "struct_typedef.h"
 
 #define CHASSIS_CAN hcan2
