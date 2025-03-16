@@ -11,7 +11,7 @@
 #include "chassis_power_control.h"
 
 #define TASK_GAP 1                           // ??????
-#define SPIN_SPEED 12                      // ??????
+#define SPIN_SPEED 12                        // ??????
 #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // ?????????????????????
 #define CHASSIS_Acceleration 15              // ????????
 #define CHASSIS_MaxSpeed 5000                // ??????????
@@ -29,7 +29,18 @@ PID_TypeDef Motor_VPID[4] = {0};
 int16_t classicTargetSpeed[4], classicTargetSpeed_r[4], classicSpeed[4];
 fp32 chassis_direct;
 // extern PID_TypeDef Motor_VPID[4];
-extern can_send_data_channel_u cboard_data;
+
+extern can_send_data_channel_u cboard_data, last_cboard_data;
+
+typedef enum
+{
+    remote,
+    keyboard,
+} cboard_mode;
+cboard_mode cboard_mode_switch;
+
+uint8_t cboard_switch;
+
 int16_t cordinate_x, cordinate_y;
 
 chassis_behaviour_e chassis_behaviour;
@@ -53,12 +64,35 @@ void chassis_task(void *argument)
     {
         xLastWakeTime = xTaskGetTickCount();
 
-        if (cboard_data.data.mode == RobotState_e_Powerless)
-            chassis_behaviour = CHASSIS_ZERO_FORCE;
-        else if (cboard_data.data.mode == RobotState_e_CommonCar)
-            chassis_behaviour = CHASSIS_NO_FOLLOW_YAW;
-        else if (cboard_data.data.mode == RobotState_e_GimbalCar)
-            chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+        if (cboard_data.data.keyboard != last_cboard_data.data.keyboard)
+        {
+            // cboard_data.data.mode = RobotState_e_Powerless;cboard_mode_switch
+            cboard_mode_switch = keyboard;
+        }
+        else if (cboard_data.data.channel_0 != last_cboard_data.data.channel_0 ||
+                 cboard_data.data.channel_2 != last_cboard_data.data.channel_2 ||
+                 cboard_data.data.channel_3 != last_cboard_data.data.channel_3 ||
+                 cboard_data.data.mode != last_cboard_data.data.mode)
+        {
+            cboard_mode_switch = remote;
+        }
+
+        if (cboard_mode_switch == remote)
+        {
+            if (cboard_data.data.mode == RobotState_e_Powerless)
+                chassis_behaviour = CHASSIS_ZERO_FORCE;
+            else if (cboard_data.data.mode == RobotState_e_CommonCar)
+                chassis_behaviour = CHASSIS_NO_FOLLOW_YAW;
+            else if (cboard_data.data.mode == RobotState_e_GimbalCar)
+                chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+        }
+        else if (cboard_mode_switch == keyboard)
+        {
+            if (cboard_data.data.keyboard & 0x01 == 0)
+                chassis_behaviour = CHASSIS_NO_FOLLOW_YAW;
+            else
+                chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+        }
 
         // ????????????
         // cboard_switch = cboard_data[6];
@@ -78,11 +112,26 @@ void chassis_task(void *argument)
             }
             else
             {
-                ChassisGetTargetSpeed(cboard_data.data.mode, cboard_data.data.channel_2, cboard_data.data.channel_3); // ?????????????
-                ChassisMotorSpeedAccelerationCalculation();                                                           // ?????????????
+                static int16_t last_cboard_lx, last_cboard_ly;
+                if (cboard_mode_switch == remote)
+                {
+                    last_cboard_lx = cboard_data.data.channel_2;
+                    last_cboard_ly = cboard_data.data.channel_3;
+                }
+                else if (cboard_mode_switch == keyboard)
+                {
+                    last_cboard_lx =
+                        cboard_data.data.keyboard & 0x80 ? 660 : cboard_data.data.keyboard & 0x20 ? -660
+                                                                                                  : 0;
+                    last_cboard_ly =
+                        cboard_data.data.keyboard & 0x40 ? 660 : cboard_data.data.keyboard & 0x10 ? -660
+                                                                                                  : 0;
+                }
+                ChassisGetTargetSpeed(chassis_behaviour, last_cboard_lx, last_cboard_ly); // ?????????????
+                ChassisMotorSpeedAccelerationCalculation();                               // ?????????????
             }
 
-            ChassisPIDCalculate(); // PID????
+            ChassisPIDCalculate();   // PID????
             chassis_power_control(); // ??????????
             CAN_cmd_chassis((int16_t)Motor_VPID[0].Output, (int16_t)Motor_VPID[1].Output, (int16_t)Motor_VPID[2].Output, (int16_t)Motor_VPID[3].Output);
         }
@@ -91,6 +140,7 @@ void chassis_task(void *argument)
             //            CAN_cmd_chassis(0, 0, 0, 0);
             CAN_cmd_chassis(0, 0, 0, 0);
         }
+        last_cboard_data = cboard_data;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
@@ -103,14 +153,21 @@ void ChassisGetSpeed(void)
     }
 }
 
-void ChassisGetTargetSpeed(enum RobotState_e RobotState, int16_t cboard_lx, int16_t cboard_ly)
+// void ChassisGetTargetSpeed(enum RobotState_e RobotState, int16_t cboard_lx, int16_t cboard_ly)
+void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard_lx, int16_t cboard_ly)
 {
-    static enum RobotState_e lastRobotState = RobotState_e_GimbalCar;
     static uint32_t time;
-    if (RobotState != lastRobotState)
+    static chassis_behaviour_e last_chassis_behaviour;
+    // static enum RobotState_e lastRobotState = RobotState_e_GimbalCar;
+    // if (RobotState != lastRobotState)
+    //     time = (uint32_t)xLastWakeTime;
+    // lastRobotState = RobotState;
+    // if (RobotState == RobotState_e_Spinner)
+
+    if (chassis_behaviour != last_chassis_behaviour)
         time = (uint32_t)xLastWakeTime;
-    lastRobotState = RobotState;
-    if (RobotState == RobotState_e_Spinner)
+    last_chassis_behaviour = chassis_behaviour;
+    if (chassis_behaviour == CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW)
     {
         if (time % 2 == 0)
             for (int i = 0; i < 4; i++)
