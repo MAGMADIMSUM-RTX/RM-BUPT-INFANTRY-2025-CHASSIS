@@ -242,7 +242,7 @@ void SystemClock_Config(void)
 volatile unsigned long ulHighFrequencyTimerTicks;
 int fputc(int ch, FILE *f)
 {
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0x20);
+  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0x20);
   return ch;
 }
 /* USER CODE END 4 */

@@ -57,9 +57,12 @@ void uart_task(void *argument)
     //		vTaskGetRunTimeStats(time_info);
     //		printf("%s\n",time_info);
     //
-    // pri ntf("%f,%f,%f\n", power_heat_data_t.chassis_power, power_scale * initial_total_power, initial_total_power);
+    // sprintf(judgeMessage, "%f,%f,%f\n", power_heat_data_t.chassis_power, power_scale * initial_total_power, initial_total_power);
 
-    //		HAL_UART_Transmit(&huart1,(uint8_t *)judgeMessage, 512,0x2F);
+//    sprintf(judgeMessage, "%c\n", cboard_data.data.keyboard);
+
+    HAL_UART_Transmit(&huart1, (uint8_t *)&cboard_data.data.keyboard, 1, 0x2F);
+    HAL_UART_Transmit(&huart1, "\n", 1, 0x2F);
     //		printf("\n");
 
     //    vTaskDelayUntil(&xLastWakeTime, xFrequency);

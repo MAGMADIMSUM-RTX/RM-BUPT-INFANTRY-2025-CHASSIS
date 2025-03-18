@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "chassis_behaviour.h"
+#include "CAN_receive.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,51 +61,51 @@ extern chassis_behaviour_e chassis_behaviour;
 /* Definitions for check_online_ta */
 osThreadId_t check_online_taHandle;
 const osThreadAttr_t check_online_ta_attributes = {
-  .name = "check_online_ta",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal,
+    .name = "check_online_ta",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityAboveNormal,
 };
 /* Definitions for LED */
 osThreadId_t LEDHandle;
 const osThreadAttr_t LED_attributes = {
-  .name = "LED",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "LED",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for Chassis */
 osThreadId_t ChassisHandle;
 const osThreadAttr_t Chassis_attributes = {
-  .name = "Chassis",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityRealtime,
+    .name = "Chassis",
+    .stack_size = 256 * 4,
+    .priority = (osPriority_t)osPriorityRealtime,
 };
 /* Definitions for uart */
 osThreadId_t uartHandle;
 const osThreadAttr_t uart_attributes = {
-  .name = "uart",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityHigh5,
+    .name = "uart",
+    .stack_size = 256 * 4,
+    .priority = (osPriority_t)osPriorityHigh5,
 };
 /* Definitions for INS */
 osThreadId_t INSHandle;
 const osThreadAttr_t INS_attributes = {
-  .name = "INS",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "INS",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 /* Definitions for detect */
 osThreadId_t detectHandle;
 const osThreadAttr_t detect_attributes = {
-  .name = "detect",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "detect",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 /* Definitions for referee_usart */
 osThreadId_t referee_usartHandle;
 const osThreadAttr_t referee_usart_attributes = {
-  .name = "referee_usart",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "referee_usart",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,11 +125,12 @@ extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -163,7 +165,7 @@ void MX_FREERTOS_Init(void) {
   uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
 
   /* creation of INS */
-//  INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
+  //  INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
 
   /* creation of detect */
   detectHandle = osThreadNew(detect_task, NULL, &detect_attributes);
@@ -178,7 +180,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
-
 }
 
 /* USER CODE BEGIN Header_check_online */
@@ -194,71 +195,58 @@ __weak void check_online(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN check_online */
   /* Infinite loop */
+  // 初始时关闭底盘任务和LED任务，等待确认电机在线
   osThreadTerminate(ChassisHandle);
   osThreadTerminate(LEDHandle);
-//  osThreadTerminate(YawHandle);
+
   while (1)
   {
     for (int i = 0; i < 8; i++)
     {
-      if (online_flag & (1 << i)) // 检测到在线
+      uint8_t motor_bit = (1 << i);
+
+      if (online_flag & motor_bit) // 检测到电机在线
       {
-        if (Motor_online.motor_online & (1 << i)) // 已登记在线
+        if (Motor_online.motor_online & motor_bit) // 已登记在线，重置计时器
         {
           Motor_online.motor_ticks[i] = 0;
         }
-        else // 未登记在线
+        else // 未登记在线，标记为在线
         {
-          Motor_online.motor_online |= (1 << i);
-          // if (i < 4 && (Motor_online.motor_online & 0x0F == 0x0F))
-          // {
-          //   Chassis_Ctrl_TaHandle = osThreadNew(Chassis_Ctrl, NULL, &Chassis_Ctrl_Ta_attributes);
-          //   if (Chassis_Ctrl_TaHandle == NULL)
-          //   {
+          Motor_online.motor_online |= motor_bit;
 
-          //     Chassis_Ctrl_TaHandle = osThreadNew(Chassis_Ctrl, NULL, &Chassis_Ctrl_Ta_attributes);
-          //   }
-          // }
-          // else if (i == 4)
-          // {
-          //   Yaw_Ctrl_TaskHandle = osThreadNew(Yaw_Ctrl, NULL, &Yaw_Ctrl_Task_attributes);
-          //   if (Yaw_Ctrl_TaskHandle == NULL)
-          //   {
-
-          //     Yaw_Ctrl_TaskHandle = osThreadNew(Yaw_Ctrl, NULL, &Yaw_Ctrl_Task_attributes);
-          //   }
-          // }
-          if (i == 7)
+          if ((motor_bit==0x80 && Motor_online.motor_online&0x0F)||
+              (motor_bit&0x0F && Motor_online.motor_online&0x80)) // 检测到c板在线，启动底盘任务
           {
             LEDHandle = osThreadNew(led_task, NULL, &LED_attributes);
             ChassisHandle = osThreadNew(chassis_task, NULL, &Chassis_attributes);
           }
         }
       }
-      else if (Motor_online.motor_online & (1 << i))
+      else if (Motor_online.motor_online & motor_bit) // 已登记在线但未收到在线信号
       {
+        // 增加计时器，超时后标记为离线
         if (++Motor_online.motor_ticks[i] == CHECK_ONLINE_TIMEOUT_COUNT)
         {
-          Motor_online.motor_online &= ~(1 << i);
+          Motor_online.motor_online &= ~motor_bit;
           Motor_online.motor_ticks[i] = 0;
-          // if (i < 4)
-          // {
-          //   //todo 锟截闭碉拷锟教匡拷锟斤拷
-          // }
-          // else if (i == 4)
-          // {
-          // }
+
+          // 处理c板离线情况
           if (i == 7)
           {
-            chassis_behaviour = CHASSIS_NO_MOVE;
+            // 设置底盘为零力矩模式
+            chassis_behaviour = CHASSIS_ZERO_FORCE;
             osDelay(200);
+            // 发送停止命令
             CAN_cmd_chassis(0, 0, 0, 0);
+            // 关闭相关任务
             osThreadTerminate(ChassisHandle);
             osThreadTerminate(LEDHandle);
           }
         }
       }
     }
+    // 复位在线标志，等待下一轮检测
     online_flag = 0;
     osDelay(CHECK_ONLINE_TASK_DELAY);
   }
@@ -269,4 +257,3 @@ __weak void check_online(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
