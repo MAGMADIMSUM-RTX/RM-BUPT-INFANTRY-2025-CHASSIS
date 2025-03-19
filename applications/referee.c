@@ -169,7 +169,6 @@ void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer)
 {
     *power = power_heat_data_t.chassis_power;
     *buffer = power_heat_data_t.chassis_power_buffer;
-
 }
 
 

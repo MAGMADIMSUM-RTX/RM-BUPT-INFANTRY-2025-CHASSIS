@@ -54,6 +54,8 @@ typedef struct
   uint8_t motor_ticks[8];
 } is_motor_online;
 
+uint8_t chassis_flag = 0;
+
 is_motor_online Motor_online;
 uint8_t online_flag = 0;
 extern chassis_behaviour_e chassis_behaviour;
@@ -107,6 +109,14 @@ const osThreadAttr_t referee_usart_attributes = {
     .stack_size = 128 * 4,
     .priority = (osPriority_t)osPriorityNormal,
 };
+/* Definitions for UI */
+osThreadId_t UIHandle;
+const osThreadAttr_t UI_attributes = {
+    .name = "UI",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityBelowNormal1,
+//    .priority = (osPriority_t)osPriorityRealtime5,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -120,6 +130,7 @@ extern void uart_task(void *argument);
 extern void INS_task(void *argument);
 extern void detect_task(void *argument);
 extern void referee_usart_task(void *argument);
+extern void ui_task(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -165,13 +176,16 @@ void MX_FREERTOS_Init(void)
   uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
 
   /* creation of INS */
-  //  INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
+  // INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
 
   /* creation of detect */
   detectHandle = osThreadNew(detect_task, NULL, &detect_attributes);
 
   /* creation of referee_usart */
   referee_usartHandle = osThreadNew(referee_usart_task, NULL, &referee_usart_attributes);
+
+  /* creation of UI */
+  UIHandle = osThreadNew(ui_task, NULL, &UI_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -215,9 +229,11 @@ __weak void check_online(void *argument)
         {
           Motor_online.motor_online |= motor_bit;
 
-          if ((motor_bit==0x80 && Motor_online.motor_online&0x0F)||
-              (motor_bit&0x0F && Motor_online.motor_online&0x80)) // 检测到c板在线，启动底盘任务
+          if (!chassis_flag &&(
+              ((motor_bit == 0x80 && Motor_online.motor_online & 0x0F) ||
+               (motor_bit & 0x0F && Motor_online.motor_online & 0x80)))) // 检测到c板在线，启动底盘任务
           {
+            chassis_flag = 1;
             LEDHandle = osThreadNew(led_task, NULL, &LED_attributes);
             ChassisHandle = osThreadNew(chassis_task, NULL, &Chassis_attributes);
           }
@@ -232,7 +248,7 @@ __weak void check_online(void *argument)
           Motor_online.motor_ticks[i] = 0;
 
           // 处理c板离线情况
-          if (i == 7)
+          if (!(Motor_online.motor_online & 0x0F) || !(Motor_online.motor_online & 0x80)) // c板离线或四个轮子都离线
           {
             // 设置底盘为零力矩模式
             chassis_behaviour = CHASSIS_ZERO_FORCE;
@@ -240,7 +256,11 @@ __weak void check_online(void *argument)
             // 发送停止命令
             CAN_cmd_chassis(0, 0, 0, 0);
             // 关闭相关任务
-            osThreadTerminate(ChassisHandle);
+            if (chassis_flag)
+            {
+              osThreadTerminate(ChassisHandle);
+              chassis_flag = 0;
+            }
             osThreadTerminate(LEDHandle);
           }
         }

@@ -71,6 +71,7 @@ void chassis_task(void *argument)
                  Integral_Limit | OutputFilter);
     }
     last_cboard_data = cboard_data;
+    chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
 
     while (1)
     {

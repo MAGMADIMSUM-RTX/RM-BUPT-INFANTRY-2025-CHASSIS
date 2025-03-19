@@ -60,7 +60,7 @@ unpack_data_t referee_unpack_obj;
   * @param[in]      pvParameters: NULL
   * @retval         none
   */
-void referee_usart_task(void const * argument)
+void referee_usart_task(void * argument)
 {
     init_referee_struct_data();
     fifo_s_init(&referee_fifo, referee_fifo_buf, REFEREE_FIFO_BUF_LENGTH);
@@ -68,7 +68,6 @@ void referee_usart_task(void const * argument)
 
     while(1)
     {
-
         referee_unpack_fifo_data();
         osDelay(10);
     }

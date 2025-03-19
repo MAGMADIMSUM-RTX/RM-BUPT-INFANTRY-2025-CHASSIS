@@ -97,19 +97,21 @@ void MX_FREERTOS_Init(void);
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
   HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_11);
-  if (huart == &huart6)
-  {
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
-  }
-  else if (huart->Instance == USART3)
+  // if (huart == &huart6)
+  // {
+  //   HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
+  //   HAL_UART_Transmit(&huart1, (uint8_t *)rxmessage, BUFFERSIZE, 0x2F);
+  // }
+  if (huart->Instance == USART3)
   {
     HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t *)remoteMessage, 36);
   }
   else if (huart->Instance == USART1)
   {
-//		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)judgeMessage, 512);
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)judgeMessage, 512);
   }
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -167,7 +169,7 @@ int main(void)
   // PID_Init(&Gimbal_VPID, GVP, GVI, GVD, GVMAXOutput, GVMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)judgeMessage, 512);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t *)remoteMessage, 36);
-//  HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
+  // HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
   can_filter_init();
   HAL_TIM_Base_Start_IT(&htim5);
   /* USER CODE END 2 */
@@ -242,7 +244,7 @@ void SystemClock_Config(void)
 volatile unsigned long ulHighFrequencyTimerTicks;
 int fputc(int ch, FILE *f)
 {
-  HAL_UART_Transmit(&huart6, (uint8_t *)&ch, 1, 0x20);
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0x20);
   return ch;
 }
 /* USER CODE END 4 */
