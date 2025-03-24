@@ -31,7 +31,7 @@ int16_t chassis1RawCircle = 0, chassis2RawCircle = 0, chassis3RawCircle = 0, cha
 
 CAN_RxHeaderTypeDef cboard_header;
 
-can_send_data_channel_u cboard_data,cboard_data_temp;
+can_send_data_channel_u cboard_data, cboard_data_temp;
 
 extern uint8_t online_flag;
 
@@ -45,7 +45,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   CAN_RxHeaderTypeDef rx_header;
   uint8_t rx_data[sizeof(can_send_data_channel_u)];
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
-  
+
   switch (rx_header.StdId)
   {
   case CAN_3508_M1_ID:
@@ -59,7 +59,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     static uint8_t i = 0;
     // get motor id
     i = rx_header.StdId - CAN_3508_M1_ID;
-    online_flag |=  (uint8_t)1 << i;
+    online_flag |= (uint8_t)1 << i;
 
     get_motor_measure(&motor_chassis[i], rx_data);
     break;
@@ -68,17 +68,19 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   default:
   {
     memcpy(&cboard_data_temp, rx_data, sizeof(can_send_data_channel_u));
-//		if(cboard_data_temp.data.channel_0>=670||cboard_data_temp.data.channel_2>=670||cboard_data_temp.data.channel_3>=670
-//			||cboard_data_temp.data.channel_0<=-670||cboard_data_temp.data.channel_2<=-670||cboard_data_temp.data.channel_3<=-670)
-		if(cboard_data_temp.data.mode!=0){
-    cboard_header = rx_header;
-//		for(int i=0;i<sizeof(can_send_data_channel_u);i++)
-//			cboard_data.data_1[i]=rx_data[i];
-    memcpy(&cboard_data, rx_data, sizeof(can_send_data_channel_u));
-////		if(cboard_data.data.mode!=RobotState_e_Powerless)
-			online_flag |= (uint8_t)0x80;
-//		printf("%d\n",cboard_data.data.mode);
-    break;}
+    //		if(cboard_data_temp.data.channel_0>=670||cboard_data_temp.data.channel_2>=670||cboard_data_temp.data.channel_3>=670
+    //			||cboard_data_temp.data.channel_0<=-670||cboard_data_temp.data.channel_2<=-670||cboard_data_temp.data.channel_3<=-670)
+    // if (cboard_data_temp.data.mode != 0)
+    {
+      cboard_header = rx_header;
+      //		for(int i=0;i<sizeof(can_send_data_channel_u);i++)
+      //			cboard_data.data_1[i]=rx_data[i];
+      memcpy(&cboard_data, rx_data, sizeof(can_send_data_channel_u));
+      ////		if(cboard_data.data.mode!=RobotState_e_Powerless)
+      online_flag |= (uint8_t)0x80;
+      //		printf("%d\n",cboard_data.data.mode);
+      break;
+    }
   }
   }
 

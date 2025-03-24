@@ -33,6 +33,7 @@ extern can_send_data_channel_u cboard_data;
 extern uint8_t judgeMessage[512];
 
 extern int16_t cordinate_x, cordinate_y;
+extern can_send_data_channel_u cboard_data;
 extern ext_power_heat_data_t power_heat_data_t;
 extern float initial_total_power;
 extern fp32 power_scale;
@@ -49,7 +50,7 @@ void uart_task(void *argument)
   {
     xLastWakeTime = xTaskGetTickCount();
 
-    //		printf("%d,%d,%d,%d,%d,%d,%d\n",get_pitch_gimbal_motor_measure_point()->ecd,get_yaw_gimbal_motor_measure_point()->ecd,get_trigger_motor_measure_point()->ecd,get_chassis_motor_measure_point(0)->ecd,get_chassis_motor_measure_point(1)->ecd,get_chassis_motor_measure_point(2)->ecd,get_chassis_motor_measure_point(3)->ecd);
+    //printf("%d,%d,%d,%d,%d,%d,%d\n",get_pitch_gimbal_motor_measure_point()->ecd,get_yaw_gimbal_motor_measure_point()->ecd,get_trigger_motor_measure_point()->ecd,get_chassis_motor_measure_point(0)->ecd,get_chassis_motor_measure_point(1)->ecd,get_chassis_motor_measure_point(2)->ecd,get_chassis_motor_measure_point(3)->ecd);
 
     //    printf("%f,%f,%f,%f,%f,%f,%f\n", gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], temp);
 
@@ -62,9 +63,12 @@ void uart_task(void *argument)
     // printf("%s\n",time_info);
     //
     // sprintf(judgeMessage, "%f,%f,%f\n", power_heat_data_t.chassis_power, power_scale * initial_total_power, initial_total_power);
+    // sprintf(judgeMessage, "%d\n",get_yaw_gimbal_motor_measure_point()->ecd);
+
+    sprintf(judgeMessage, "%d\n", cboard_data.data.mode);
 
     // sprintf(judgeMessage, "%d\n", ui_self_id);
-    // HAL_UART_Transmit(&huart1, (uint8_t *)judgeMessage, strlen(judgeMessage), 0x2F);
+    HAL_UART_Transmit(&huart1, (uint8_t *)judgeMessage, strlen(judgeMessage), 0x2F);
 
     // HAL_UART_Transmit(&huart1, (uint8_t *)&cboard_data.data.keyboard, 1, 0x2F);
     // HAL_UART_Transmit(&huart1, "\n", 1, 0x2F);

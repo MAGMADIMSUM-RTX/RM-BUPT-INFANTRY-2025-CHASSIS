@@ -7,7 +7,8 @@
 
 #include "ui_interface.h"
 
-extern ui_interface_line_t *ui_g_Ungroup_NewLine;
+extern ui_interface_line_t *ui_g_Ungroup_Line1;
+extern ui_interface_line_t *ui_g_Ungroup_Line2;
 
 void _ui_init_g_Ungroup_0();
 void _ui_update_g_Ungroup_0();

@@ -15,7 +15,7 @@
 #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // 遥控器到底盘速度比例
 #define CHASSIS_Acceleration 15              // 底盘加速度
 #define CHASSIS_MaxSpeed 8000                // 底盘最大速度 //TODO 观察是否为最大速度
-#define ECD_DEVIATION 2550                   // YAW轴电机偏差
+#define ECD_DEVIATION 5856                   // YAW轴电机偏差
 
 // PID参数
 #define M3508_SPEED_P 18.1

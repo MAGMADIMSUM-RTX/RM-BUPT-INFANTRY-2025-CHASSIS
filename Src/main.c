@@ -40,6 +40,7 @@
 #include "bsp_can.h"
 #include "pid.h"
 #include "remote.h"
+#include "string.h" // 添加string.h以使用strlen函数
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,6 +84,7 @@ char rxmessage[BUFFERSIZE] = {0};
 uint8_t judgeMessage[512] = {0};
 uint8_t remoteMessage[36] = {0};
 uint8_t status = 0;
+volatile uint8_t uart_tx_complete = 1; // DMA发送完成标志
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,7 +98,7 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-  HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_11);
+  // HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_11);
   // if (huart == &huart6)
   // {
   //   HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
@@ -188,6 +190,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+//    if(uart_tx_complete)
+    {
+      uart_tx_complete = 0; // 清除标志，表示正在传输
+      // HAL_UART_DMAStop(&huart1);
+      HAL_UART_Transmit_DMA(&huart1, (uint8_t *)"Hello!", strlen("Hello!"));
+    }
+//    HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -246,6 +255,15 @@ int fputc(int ch, FILE *f)
 {
   HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0x20);
   return ch;
+}
+
+// 添加UART DMA传输完成回调函数
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if(huart->Instance == USART1)
+  {
+    uart_tx_complete = 1; // 设置传输完成标志
+  }
 }
 /* USER CODE END 4 */
 
