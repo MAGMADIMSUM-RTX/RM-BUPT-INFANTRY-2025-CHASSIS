@@ -11,7 +11,7 @@
 
 // 常量定义
 #define TASK_GAP 1                           // 任务间隔
-#define SPIN_SPEED 3000                        // 自旋速度
+#define SPIN_SPEED 2000                      // 自旋速度
 #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // 遥控器到底盘速度比例
 #define CHASSIS_Acceleration 15              // 底盘加速度
 #define CHASSIS_MaxSpeed 8000                // 底盘最大速度 //TODO 观察是否为最大速度
@@ -29,7 +29,7 @@
 #define KEY_S 0x20
 #define KEY_A 0x40
 #define KEY_D 0x10
-#define KEY_SHIFT 0x01
+#define KEY_CTRL 0x01
 
 // 全局变量
 PID_TypeDef Motor_VPID[4] = {0};
@@ -38,6 +38,7 @@ int16_t classicTargetSpeed[4] = {0}, classicTargetSpeed_r[4] = {0}, classicSpeed
 extern can_send_data_channel_u cboard_data;
 can_send_data_channel_u last_cboard_data;
 enum chassis_spinner_e chassis_spin_state;
+fp32 chassis_direct = 0.0f;
 
 typedef enum
 {
@@ -136,8 +137,8 @@ void chassis_task(void *argument)
                             (int16_t)Motor_VPID[1].Output,
                             (int16_t)Motor_VPID[2].Output,
                             (int16_t)Motor_VPID[3].Output);
-						
-//						CAN_cmd_gimbal(0,0,100,0);
+
+            //						CAN_cmd_gimbal(0,0,100,0);
         }
         else
         {
@@ -172,16 +173,15 @@ void UpdateChassisMode(void)
     }
     else if (remote_mode_switch == keyboard)
     {
-        if ((last_cboard_data.data.keyboard & KEY_SHIFT) == 0 &&  //? 点击shift键切换底盘自旋状态
-            (cboard_data.data.keyboard & KEY_SHIFT) !=
-            (last_cboard_data.data.keyboard & KEY_SHIFT))
+        if ((last_cboard_data.data.keyboard & KEY_CTRL) == 0 && //? 点击shift键切换底盘自旋状态
+            (cboard_data.data.keyboard & KEY_CTRL) !=
+                (last_cboard_data.data.keyboard & KEY_CTRL))
             if (chassis_spin_state == CHASSIS_Spinner_Stop)
-                chassis_spin_state = xTaskGetTickCount() % 2 == 0 ?
-                CHASSIS_Spinner_Clockwise : CHASSIS_Spinner_AntiClockwise;	
+                chassis_spin_state = xTaskGetTickCount() % 2 == 0 ? CHASSIS_Spinner_Clockwise : CHASSIS_Spinner_AntiClockwise;
             else
                 chassis_spin_state = CHASSIS_Spinner_Stop;
     }
-    
+
     // 保存上一次的数据
     last_cboard_data = cboard_data;
 }
@@ -206,7 +206,6 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
     {
         classicTargetSpeed[i] = 0;
     }
-    
 
     last_chassis_behaviour = chassis_behaviour;
 
@@ -218,15 +217,15 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
             spin_direction = SPIN_SPEED;
         else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
             spin_direction = -SPIN_SPEED;
-				else
-					  spin_direction = 0;
+        else
+            spin_direction = 0;
 
         for (int i = 0; i < 4; i++)
         {
             classicTargetSpeed[i] = spin_direction;
         }
     }
-    else if( chassis_behaviour == CHASSIS_NO_MOVE)
+    else if (chassis_behaviour == CHASSIS_NO_MOVE)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -234,7 +233,6 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
         }
     }
 
-    static fp32 chassis_direct = 0.0f;
     // 计算底盘朝向
     chassis_direct = ((get_yaw_gimbal_motor_measure_point()->ecd - ECD_DEVIATION) / 8192.0f) * 2 * PI;
 

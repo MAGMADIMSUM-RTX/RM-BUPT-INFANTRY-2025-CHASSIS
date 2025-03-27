@@ -36,7 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CHECK_ONLINE_TIMEOUT 500
+#define CHECK_ONLINE_TIMEOUT 50
 #define CHECK_ONLINE_TASK_DELAY 5
 #define CHECK_ONLINE_TIMEOUT_COUNT (CHECK_ONLINE_TIMEOUT / CHECK_ONLINE_TASK_DELAY)
 /* USER CODE END PD */
@@ -228,6 +228,8 @@ __weak void check_online(void *argument)
         else // 未登记在线，标记为在线
         {
           Motor_online.motor_online |= motor_bit;
+					
+					
 
           if (!chassis_flag &&(
               ((motor_bit == 0x80 && Motor_online.motor_online & 0x0F) ||
