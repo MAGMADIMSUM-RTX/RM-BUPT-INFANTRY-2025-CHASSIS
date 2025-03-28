@@ -2,7 +2,7 @@
  * @Author: MAGMADIMSUM madmaliu@bupt.edu.cn
  * @Date: 2025-02-16 16:06:10
  * @LastEditors: MAGMADIMSUM madmaliu@bupt.edu.cn
- * @LastEditTime: 2025-03-28 11:57:33
+ * @LastEditTime: 2025-03-28 18:17:26
  * @FilePath: \chassis\applications\uart_task.c
  * @Description:
  *
@@ -53,6 +53,13 @@ void uart_task(void *argument)
   TickType_t xLastWakeTime;
   const TickType_t xFrequency = pdMS_TO_TICKS(5);
 
+  static uint8_t chassis_can_send_data[8];
+  static CAN_TxHeaderTypeDef chassis_tx_message;
+  chassis_tx_message.StdId = 0x88;
+  chassis_tx_message.IDE = CAN_ID_STD;
+  chassis_tx_message.RTR = CAN_RTR_DATA;
+  chassis_tx_message.DLC = 0x08;
+
   while (1)
   {
     xLastWakeTime = xTaskGetTickCount();
@@ -82,6 +89,18 @@ void uart_task(void *argument)
     //		printf("\n");
 
     //    vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    uint32_t send_mail_box;
+    chassis_can_send_data[0] =  robot_state.robot_level;
+    // chassis_can_send_data[0] = robot_state.robot_level;
+    // chassis_can_send_data[1] = motor1;
+    // chassis_can_send_data[2] = motor2 >> 8;
+    // chassis_can_send_data[3] = motor2;
+    // chassis_can_send_data[4] = motor3 >> 8;
+    // chassis_can_send_data[5] = motor3;
+    // chassis_can_send_data[6] = motor4 >> 8;
+    // chassis_can_send_data[7] = motor4;
+
+    HAL_CAN_AddTxMessage(&hcan1, &chassis_tx_message, chassis_can_send_data, &send_mail_box);
     osDelay(10);
   }
 }

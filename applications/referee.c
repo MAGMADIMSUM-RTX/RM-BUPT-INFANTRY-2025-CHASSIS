@@ -23,7 +23,7 @@ ext_referee_warning_t referee_warning_t;                     // 裁判警告数据
 
 // 机器人状态与数据结构体
 ext_game_robot_state_t robot_state;                        // 机器人状态数据
-ext_power_heat_data_t power_heat_data_t;                   // 功率热量数据
+ext_power_heat_data_t power_heat_data_zt;                   // 功率热量数据
 ext_game_robot_pos_t game_robot_pos_t;                     // 机器人位置数据
 ext_buff_musk_t buff_musk_t;                               // 机器人增益数据
 aerial_robot_energy_t robot_energy_t;                      // 空中机器人能量数据

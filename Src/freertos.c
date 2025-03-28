@@ -175,7 +175,7 @@ void MX_FREERTOS_Init(void)
   ChassisHandle = osThreadNew(chassis_task, NULL, &Chassis_attributes);
 
   /* creation of uart */
-  uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
+//  uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
 
   /* creation of INS */
   // INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
