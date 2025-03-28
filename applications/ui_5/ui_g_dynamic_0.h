@@ -11,7 +11,7 @@ extern ui_interface_arc_t *ui_g_dynamic_spinner;
 extern ui_interface_round_t *ui_g_dynamic_fric;
 extern ui_interface_line_t *ui_g_dynamic_Line_angle;
 extern ui_interface_rect_t *ui_g_dynamic_auto_aim;
-extern ui_interface_round_t *ui_g_dynamic_speed;
+extern ui_interface_line_t *ui_g_dynamic_aim_line0;
 
 void _ui_init_g_dynamic_0(void);
 void _ui_update_g_dynamic_0(void);

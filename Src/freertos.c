@@ -115,7 +115,7 @@ const osThreadAttr_t UI_attributes = {
     .name = "UI",
     .stack_size = 128 * 4,
     .priority = (osPriority_t)osPriorityBelowNormal1,
-//    .priority = (osPriority_t)osPriorityRealtime5,
+    //    .priority = (osPriority_t)osPriorityRealtime5,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,6 +131,8 @@ extern void INS_task(void *argument);
 extern void detect_task(void *argument);
 extern void referee_usart_task(void *argument);
 extern void ui_task(void *argument);
+
+//void ui_keyboard_update(int *retFlag);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -228,12 +230,9 @@ __weak void check_online(void *argument)
         else // 未登记在线，标记为在线
         {
           Motor_online.motor_online |= motor_bit;
-					
-					
 
-          if (!chassis_flag &&(
-              ((motor_bit == 0x80 && Motor_online.motor_online & 0x0F) ||
-               (motor_bit & 0x0F && Motor_online.motor_online & 0x80)))) // 检测到c板在线，启动底盘任务
+          if (!chassis_flag && (((motor_bit == 0x80 && Motor_online.motor_online & 0x0F) ||
+                                 (motor_bit & 0x0F && Motor_online.motor_online & 0x80)))) // 检测到c板在线，启动底盘任务
           {
             chassis_flag = 1;
             LEDHandle = osThreadNew(led_task, NULL, &LED_attributes);

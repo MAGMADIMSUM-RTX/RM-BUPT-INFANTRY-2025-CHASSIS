@@ -1,8 +1,8 @@
 /*
  * @Author: MAGMADIMSUM madmaliu@bupt.edu.cn
- * @Date: 2025-03-28 12:01:14
+ * @Date: 2025-03-27 19:26:28
  * @LastEditors: MAGMADIMSUM madmaliu@bupt.edu.cn
- * @LastEditTime: 2025-03-28 12:03:18
+ * @LastEditTime: 2025-03-27 19:35:10
  * @FilePath: \chassis\applications\ui\ui_interface.h
  * @Description:
  *

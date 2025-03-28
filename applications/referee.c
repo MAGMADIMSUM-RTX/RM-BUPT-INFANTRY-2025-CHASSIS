@@ -4,7 +4,7 @@
 #include "CRC8_CRC16.h" // CRC校验算法函数
 #include "protocol.h"   // 通信协议相关定义
 
-#define COMPETICIION 1
+#define COMPETICIION 3
 
 // 通信帧头结构体
 frame_header_struct_t referee_receive_header; // 接收数据的帧头
@@ -231,7 +231,7 @@ uint8_t get_chassis_power_max()
 {
 
 #if COMPETICIION == 1
-    return 118;
+    return 120;
 #endif
 
 #if COMPETICIION == 3
@@ -278,7 +278,7 @@ uint16_t get_spinner_speed(void)
 {
 
 #if COMPETICIION == 1
-    return 8000;
+    return 7000;
 #endif
 
 #if COMPETICIION == 3
@@ -387,6 +387,6 @@ uint16_t get_spinner_offsets(void)
 #endif
 
 #if COMPETICIION == 1
-    return 1400;
+    return 1024;
 #endif
 }

@@ -235,7 +235,8 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
         if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
             spin_direction = SPIN_SPEED;
         else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
-            spin_direction = -SPIN_SPEED;
+            spin_direction = SPIN_SPEED;
+        // spin_direction = -SPIN_SPEED;
         else
             spin_direction = 0;
 

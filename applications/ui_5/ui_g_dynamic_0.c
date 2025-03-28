@@ -1,12 +1,3 @@
-/*
- * @Author: MAGMADIMSUM madmaliu@bupt.edu.cn
- * @Date: 2025-03-28 12:01:14
- * @LastEditors: MAGMADIMSUM madmaliu@bupt.edu.cn
- * @LastEditTime: 2025-03-28 12:01:49
- * @FilePath: \chassis\applications\ui\ui_g_dynamic_0.c
- * @Description: 
- * 
- */
 //
 // Created by RM UI Designer
 //
@@ -25,7 +16,7 @@ ui_interface_arc_t *ui_g_dynamic_spinner = (ui_interface_arc_t *)&(ui_g_dynamic_
 ui_interface_round_t *ui_g_dynamic_fric = (ui_interface_round_t *)&(ui_g_dynamic_0.data[1]);
 ui_interface_line_t *ui_g_dynamic_Line_angle = (ui_interface_line_t *)&(ui_g_dynamic_0.data[2]);
 ui_interface_rect_t *ui_g_dynamic_auto_aim = (ui_interface_rect_t *)&(ui_g_dynamic_0.data[3]);
-ui_interface_round_t *ui_g_dynamic_speed = (ui_interface_round_t *)&(ui_g_dynamic_0.data[4]);
+ui_interface_line_t *ui_g_dynamic_aim_line0 = (ui_interface_line_t *)&(ui_g_dynamic_0.data[4]);
 
 void _ui_init_g_dynamic_0() {
     for (int i = 0; i < OBJ_NUM; i++) {
@@ -52,8 +43,8 @@ void _ui_init_g_dynamic_0() {
     ui_g_dynamic_fric->figure_tpye = 2;
     ui_g_dynamic_fric->layer = 0;
     ui_g_dynamic_fric->r = 10;
-    ui_g_dynamic_fric->start_x = 1579;
-    ui_g_dynamic_fric->start_y = 735;
+    ui_g_dynamic_fric->start_x = 1585;
+    ui_g_dynamic_fric->start_y = 740;
     ui_g_dynamic_fric->color = 0;
     ui_g_dynamic_fric->width = 20;
 
@@ -75,13 +66,14 @@ void _ui_init_g_dynamic_0() {
     ui_g_dynamic_auto_aim->end_x = 1361;
     ui_g_dynamic_auto_aim->end_y = 833;
 
-    ui_g_dynamic_speed->figure_tpye = 2;
-    ui_g_dynamic_speed->layer = 0;
-    ui_g_dynamic_speed->r = 10;
-    ui_g_dynamic_speed->start_x = 1579;
-    ui_g_dynamic_speed->start_y = 535;
-    ui_g_dynamic_speed->color = 4;
-    ui_g_dynamic_speed->width = 20;
+    ui_g_dynamic_aim_line0->figure_tpye = 2;
+    ui_g_dynamic_aim_line0->layer = 0;
+    ui_g_dynamic_aim_line0->start_x = 1585;
+    ui_g_dynamic_aim_line0->start_y = 540;
+    ui_g_dynamic_aim_line0->end_x = 1620;
+    ui_g_dynamic_aim_line0->end_y = 540;
+    ui_g_dynamic_aim_line0->color = 8;
+    ui_g_dynamic_aim_line0->width = 20;
 
 
     CAT(ui_proc_, CAT(FRAME_OBJ_NUM, _frame))(&ui_g_dynamic_0);
