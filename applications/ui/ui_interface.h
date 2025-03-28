@@ -1,3 +1,12 @@
+/*
+ * @Author: MAGMADIMSUM madmaliu@bupt.edu.cn
+ * @Date: 2025-03-27 19:26:28
+ * @LastEditors: MAGMADIMSUM madmaliu@bupt.edu.cn
+ * @LastEditTime: 2025-03-27 19:35:10
+ * @FilePath: \chassis\applications\ui\ui_interface.h
+ * @Description:
+ *
+ */
 //
 // Created by bismarckkk on 2024/2/17.
 //
@@ -8,11 +17,15 @@
 #include <stdio.h>
 #include "ui_types.h"
 
+#include "usart.h"
+
 extern int ui_self_id;
 
-void print_message(const uint8_t* message, int length);
+void print_message(const uint8_t *message, int length);
 
-#define SEND_MESSAGE(message, length) print_message(message, length)
+#define SEND_MESSAGE(message, length)                  \
+    HAL_UART_Transmit(&huart6, message, length, 1000); \
+    osDelay(50)
 
 void ui_proc_1_frame(ui_1_frame_t *msg);
 void ui_proc_2_frame(ui_2_frame_t *msg);
@@ -20,4 +33,4 @@ void ui_proc_5_frame(ui_5_frame_t *msg);
 void ui_proc_7_frame(ui_7_frame_t *msg);
 void ui_proc_string_frame(ui_string_frame_t *msg);
 
-#endif //UI_INTERFACE_H
+#endif // UI_INTERFACE_H

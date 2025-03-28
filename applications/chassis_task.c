@@ -8,14 +8,26 @@
 #include "arm_math.h"
 #include "chassis_behaviour.h"
 #include "chassis_power_control.h"
+#include "referee.h"
 
 // 常量定义
-#define TASK_GAP 1                           // 任务间隔
-#define SPIN_SPEED 2000                      // 自旋速度
-#define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // 遥控器到底盘速度比例
-#define CHASSIS_Acceleration 15              // 底盘加速度
-#define CHASSIS_MaxSpeed 8000                // 底盘最大速度 //TODO 观察是否为最大速度
-#define ECD_DEVIATION 5856                   // YAW轴电机偏差
+#define TASK_GAP 1 // 任务间隔
+// #define SPIN_SPEED 7500                      // 自旋速度
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 8 // 遥控器到底盘速度比例
+
+// #define SPIN_SPEED 8000                      // 自旋速度  //96W					1400
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 16 // 遥控器到底盘速度比例q
+// #define SPIN_SPEED 7000                      // 自旋速度  //85W
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 12 // 遥控器到底盘速度比例		1024
+// #define SPIN_SPEED 6000                      // 自旋速度  //70W					660
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 12 // 遥控器到底盘速度比例
+// #define SPIN_SPEED 5000                      // 自旋速度  //50W         500
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 10 // 遥控器到底盘速度比例
+// #define SPIN_SPEED 4000                      // 自旋速度  //45W  20° 400
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 8 // 遥控器到底盘速度比例
+#define CHASSIS_Acceleration 60 // 底盘加速度
+#define CHASSIS_MaxSpeed 8000   // 底盘最大速度 //TODO 观察是否为最大速度
+#define ECD_DEVIATION 5856      // YAW轴电机偏差
 
 // PID参数
 #define M3508_SPEED_P 18.1
@@ -34,6 +46,9 @@
 // 全局变量
 PID_TypeDef Motor_VPID[4] = {0};
 int16_t classicTargetSpeed[4] = {0}, classicTargetSpeed_r[4] = {0}, classicSpeed[4] = {0};
+
+uint16_t SPIN_SPEED = 4000;
+uint8_t REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO = 8;
 
 extern can_send_data_channel_u cboard_data;
 can_send_data_channel_u last_cboard_data;
@@ -153,6 +168,9 @@ void chassis_task(void *argument)
 // 更新底盘控制模式
 void UpdateChassisMode(void)
 {
+
+    SPIN_SPEED = get_spinner_speed();
+    REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO = get_chassis_speed_ratio();
     // 检测控制模式切换
     if (cboard_data.data.keyboard != last_cboard_data.data.keyboard)
     {
@@ -198,6 +216,7 @@ void ChassisGetSpeed(void)
 // 计算目标速度
 void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard_lx, int16_t cboard_ly)
 {
+
     // static uint32_t time;
     static chassis_behaviour_e last_chassis_behaviour = CHASSIS_ZERO_FORCE;
 
@@ -234,7 +253,18 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
     }
 
     // 计算底盘朝向
-    chassis_direct = ((get_yaw_gimbal_motor_measure_point()->ecd - ECD_DEVIATION) / 8192.0f) * 2 * PI;
+    //		int16_t piancha =chassis_spin_state==CHASSIS_Spinner_Stop?0: chassis_spin_state==CHASSIS_Spinner_Clockwise?-(get_chassis_power_max()):(get_chassis_power_max());
+
+    static int16_t offsets;
+
+    if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
+        offsets = -get_spinner_offsets();
+    else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
+        offsets = get_spinner_offsets();
+    else
+        offsets = 0;
+
+    chassis_direct = ((get_yaw_gimbal_motor_measure_point()->ecd - ECD_DEVIATION + offsets) / 8192.0f) * 2 * PI;
 
     // 计算坐标系下的运动分量
     cordinate_x = (cboard_lx * arm_cos_f32(chassis_direct) - cboard_ly * arm_sin_f32(chassis_direct)) * REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO;

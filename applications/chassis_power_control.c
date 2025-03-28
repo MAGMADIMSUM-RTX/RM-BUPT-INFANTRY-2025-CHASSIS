@@ -2,6 +2,7 @@
 #include "pid.h"
 #include "arm_math.h"
 #include "CAN_receive.h"
+#include "referee.h"
 // extern cap_measure_t cap_measure; // capacitor data structure
 // extern RC_ctrl_t rc_ctrl;
 extern PID_TypeDef Motor_VPID[4];
@@ -16,11 +17,11 @@ fp32 power_scale;
 void chassis_power_control()
 {
     // 定义最大功率限制，单位为瓦特
-    uint16_t max_power_limit = 48;
+    uint16_t max_power_limit = get_chassis_power_max();
     // 底盘最大可用功率
     fp32 chassis_max_power = 0;
-    // 电池输入功率（来自裁判系统）
-    float input_power = 0;
+    // 电池输入功率（来自裁判系统） 
+    // float input_power = 0;
     // 每个电机的初始功率，由PID计算得到
     float initial_give_power[4];
     // 所有电机的初始总功率

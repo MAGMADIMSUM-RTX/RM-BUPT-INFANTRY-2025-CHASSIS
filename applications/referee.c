@@ -4,6 +4,8 @@
 #include "CRC8_CRC16.h" // CRC校验算法函数
 #include "protocol.h"   // 通信协议相关定义
 
+#define COMPETICIION 1
+
 // 通信帧头结构体
 frame_header_struct_t referee_receive_header; // 接收数据的帧头
 frame_header_struct_t referee_send_header;    // 发送数据的帧头
@@ -227,6 +229,12 @@ void get_shoot_heat1_limit_and_heat1(uint16_t *heat1_limit, uint16_t *heat1)
 
 uint8_t get_chassis_power_max()
 {
+
+#if COMPETICIION == 1
+    return 118;
+#endif
+
+#if COMPETICIION == 3
     // uint8_t power_max;
     switch (robot_state.robot_level)
     {
@@ -263,4 +271,122 @@ uint8_t get_chassis_power_max()
     default:
         return 45;
     }
+#endif
 };
+
+uint16_t get_spinner_speed(void)
+{
+
+#if COMPETICIION == 1
+    return 8000;
+#endif
+
+#if COMPETICIION == 3
+    switch (robot_state.robot_level)
+    {
+    case 1:
+        return 4000;
+    case 2:
+        return 4000;
+    case 3:
+        return 5000;
+    case 4:
+        return 5000;
+    case 5:
+        return 6000;
+    case 6:
+        return 6000;
+    case 7:
+        return 7000;
+    case 8:
+        return 7000;
+    case 9:
+        return 8000;
+    case 10:
+        return 8000;
+    default:
+        return 4000;
+    }
+#endif
+}
+
+uint8_t get_chassis_speed_ratio(void)
+{
+
+#if COMPETICIION == 1
+    return 16;
+#endif
+
+#if COMPETICIION == 3
+    switch (robot_state.robot_level)
+    {
+    case 1:
+        return 8;
+    case 2:
+        return 8;
+    case 3:
+        return 10;
+    case 4:
+        return 10;
+    case 5:
+        return 12;
+    case 6:
+        return 12;
+    case 7:
+        return 14;
+    case 8:
+        return 14;
+    case 9:
+        return 16;
+    case 10:
+        return 16;
+    default:
+        return 8;
+    }
+#endif
+}
+
+uint16_t get_spinner_offsets(void)
+{
+#if COMPETICIION == 3
+    switch (robot_state.robot_level)
+    {
+    case 1:
+        return 400;
+
+    case 2:
+        return 400;
+
+    case 3:
+        return 500;
+
+    case 4:
+        return 500;
+
+    case 5:
+        return 660;
+
+    case 6:
+        return 660;
+
+    case 7:
+        return 1024;
+
+    case 8:
+        return 1024;
+
+    case 9:
+        return 1400;
+
+    case 10:
+        return 1400;
+
+    default:
+        return 400;
+    }
+#endif
+
+#if COMPETICIION == 1
+    return 1400;
+#endif
+}

@@ -814,6 +814,11 @@
               <FileType>1</FileType>
               <FilePath>..\applications\ui\ui_g_Ungroup_0.c</FilePath>
             </File>
+            <File>
+              <FileName>ui_g_dynamic_0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\applications\ui\ui_g_dynamic_0.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
