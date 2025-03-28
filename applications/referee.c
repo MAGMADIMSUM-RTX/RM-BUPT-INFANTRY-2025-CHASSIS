@@ -20,6 +20,7 @@ ext_event_data_t field_event;                                // 场地事件数据
 ext_supply_projectile_action_t supply_projectile_action_t;   // 补给站动作数据
 ext_supply_projectile_booking_t supply_projectile_booking_t; // 补给站预约数据
 ext_referee_warning_t referee_warning_t;                     // 裁判警告数据
+ext_power_heat_data_t power_heat_data_t;
 
 // 机器人状态与数据结构体
 ext_game_robot_state_t robot_state;                        // 机器人状态数据
@@ -231,7 +232,7 @@ uint8_t get_chassis_power_max()
 {
 
 #if COMPETICIION == 1
-    return 120;
+    return 116;
 #endif
 
 #if COMPETICIION == 3
