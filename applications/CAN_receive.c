@@ -70,14 +70,16 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     memcpy(&cboard_data_temp, rx_data, sizeof(can_send_data_channel_u));
     //		if(cboard_data_temp.data.channel_0>=670||cboard_data_temp.data.channel_2>=670||cboard_data_temp.data.channel_3>=670
     //			||cboard_data_temp.data.channel_0<=-670||cboard_data_temp.data.channel_2<=-670||cboard_data_temp.data.channel_3<=-670)
-    // if (cboard_data_temp.data.mode != 0)
+    if (cboard_data_temp.data.mode != 0)
     {
       cboard_header = rx_header;
       //		for(int i=0;i<sizeof(can_send_data_channel_u);i++)
       //			cboard_data.data_1[i]=rx_data[i];
       memcpy(&cboard_data, rx_data, sizeof(can_send_data_channel_u));
       ////		if(cboard_data.data.mode!=RobotState_e_Powerless)
-      online_flag |= (uint8_t)0x80;
+			
+			if(cboard_data.data.channel_0)
+					online_flag |= (uint8_t)0x80;
       //		printf("%d\n",cboard_data.data.mode);
       break;
     }

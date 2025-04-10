@@ -36,7 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CHECK_ONLINE_TIMEOUT 500
+#define CHECK_ONLINE_TIMEOUT 50
 #define CHECK_ONLINE_TASK_DELAY 5
 #define CHECK_ONLINE_TIMEOUT_COUNT (CHECK_ONLINE_TIMEOUT / CHECK_ONLINE_TASK_DELAY)
 /* USER CODE END PD */
@@ -63,59 +63,58 @@ extern chassis_behaviour_e chassis_behaviour;
 /* Definitions for check_online_ta */
 osThreadId_t check_online_taHandle;
 const osThreadAttr_t check_online_ta_attributes = {
-    .name = "check_online_ta",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityAboveNormal,
+  .name = "check_online_ta",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 /* Definitions for LED */
 osThreadId_t LEDHandle;
 const osThreadAttr_t LED_attributes = {
-    .name = "LED",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityLow,
+  .name = "LED",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for Chassis */
 osThreadId_t ChassisHandle;
 const osThreadAttr_t Chassis_attributes = {
-    .name = "Chassis",
-    .stack_size = 256 * 4,
-    .priority = (osPriority_t)osPriorityRealtime,
+  .name = "Chassis",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityRealtime,
 };
 /* Definitions for uart */
 osThreadId_t uartHandle;
 const osThreadAttr_t uart_attributes = {
-    .name = "uart",
-    .stack_size = 256 * 4,
-    .priority = (osPriority_t)osPriorityHigh5,
+  .name = "uart",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityHigh5,
 };
 /* Definitions for INS */
 osThreadId_t INSHandle;
 const osThreadAttr_t INS_attributes = {
-    .name = "INS",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
+  .name = "INS",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for detect */
 osThreadId_t detectHandle;
 const osThreadAttr_t detect_attributes = {
-    .name = "detect",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
+  .name = "detect",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for referee_usart */
 osThreadId_t referee_usartHandle;
 const osThreadAttr_t referee_usart_attributes = {
-    .name = "referee_usart",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
+  .name = "referee_usart",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for UI */
 osThreadId_t UIHandle;
 const osThreadAttr_t UI_attributes = {
-    .name = "UI",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityBelowNormal1,
-//    .priority = (osPriority_t)osPriorityRealtime5,
+  .name = "UI",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal1,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -136,12 +135,11 @@ extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
-void MX_FREERTOS_Init(void)
-{
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -176,7 +174,7 @@ void MX_FREERTOS_Init(void)
   uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
 
   /* creation of INS */
-  // INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
+  INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
 
   /* creation of detect */
   detectHandle = osThreadNew(detect_task, NULL, &detect_attributes);
@@ -185,7 +183,7 @@ void MX_FREERTOS_Init(void)
   referee_usartHandle = osThreadNew(referee_usart_task, NULL, &referee_usart_attributes);
 
   /* creation of UI */
-  UIHandle = osThreadNew(ui_task, NULL, &UI_attributes);
+//  UIHandle = osThreadNew(ui_task, NULL, &UI_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -194,6 +192,7 @@ void MX_FREERTOS_Init(void)
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
+
 }
 
 /* USER CODE BEGIN Header_check_online */
@@ -228,6 +227,8 @@ __weak void check_online(void *argument)
         else // 未登记在线，标记为在线
         {
           Motor_online.motor_online |= motor_bit;
+					
+					
 
           if (!chassis_flag &&(
               ((motor_bit == 0x80 && Motor_online.motor_online & 0x0F) ||
@@ -277,3 +278,4 @@ __weak void check_online(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
+

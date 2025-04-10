@@ -16,7 +16,7 @@ fp32 power_scale;
 void chassis_power_control()
 {
     // 定义最大功率限制，单位为瓦特
-    uint16_t max_power_limit = 55;
+    uint16_t max_power_limit = 60;
     // 底盘最大可用功率
     fp32 chassis_max_power = 0;
     // 电池输入功率（来自裁判系统）

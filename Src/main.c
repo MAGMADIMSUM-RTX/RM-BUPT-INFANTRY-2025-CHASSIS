@@ -41,6 +41,7 @@
 #include "pid.h"
 #include "remote.h"
 #include "string.h" // 添加string.h以使用strlen函数
+#include "chassis_behaviour.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,6 +86,10 @@ uint8_t judgeMessage[512] = {0};
 uint8_t remoteMessage[36] = {0};
 uint8_t status = 0;
 volatile uint8_t uart_tx_complete = 1; // DMA发送完成标志
+
+extern can_send_data_channel_u cboard_data;
+extern RC_Ctl_t remoteCtrl[2];
+extern uint8_t online_flag;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,6 +111,30 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   // }
   if (huart->Instance == USART3)
   {
+		remoteReceive((uint8_t *)remoteMessage);
+		cboard_data.data.channel_0=remoteCtrl[0].rc.dial;
+		cboard_data.data.channel_2=-remoteCtrl[0].rc.rockerlx;
+		cboard_data.data.channel_3=remoteCtrl[0].rc.rockerly;
+		switch(remoteCtrl[0].rc.switchRight)
+		{
+			case 1:{
+		cboard_data.data.mode = 2;
+			break;
+			}
+			case 2:{
+		cboard_data.data.mode = 3;
+			break;
+			}
+			case 3:{
+		cboard_data.data.mode = 1;
+			break;
+			}
+			default:{
+						cboard_data.data.mode = 0;
+
+			}
+		}
+		online_flag |= 0xF0;
     HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t *)remoteMessage, 36);
   }
   else if (huart->Instance == USART1)
@@ -153,7 +182,6 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM4_Init();
   MX_TIM5_Init();
-  MX_USART3_UART_Init();
   MX_TIM8_Init();
   MX_CRC_Init();
   MX_RNG_Init();
@@ -166,11 +194,15 @@ int main(void)
   MX_TIM10_Init();
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   // PID_Init(&Gimbal_SPID, GSP, GSI, GSD, GSMAXOutput, GSMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
   // PID_Init(&Gimbal_VPID, GVP, GVI, GVD, GVMAXOutput, GVMAXINTERGRAL, 0.1, 100, 100, 0.02, 0.02, Integral_Limit | OutputFilter);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)judgeMessage, 512);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart3, (uint8_t *)remoteMessage, 36);
+//	HAL_NVIC_SetPriority(USART3_IRQn, 5, 0);
+//HAL_NVIC_EnableIRQ(USART3_IRQn);
+
   // HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)rxmessage, BUFFERSIZE);
   can_filter_init();
   HAL_TIM_Base_Start_IT(&htim5);

@@ -38,6 +38,7 @@ extern ext_power_heat_data_t power_heat_data_t;
 extern float initial_total_power;
 extern fp32 power_scale;
 
+extern RC_Ctl_t remoteCtrl[2];
 static char time_info[512];
 
 extern int ui_self_id;
@@ -62,10 +63,11 @@ void uart_task(void *argument)
     // HAL_UART_Transmit(&huart1, "\n", strlen("\n"), 0x2F);
     // printf("%s\n",time_info);
     //
-    // sprintf(judgeMessage, "%f,%f,%f\n", power_heat_data_t.chassis_power, power_scale * initial_total_power, initial_total_power);
+    sprintf(judgeMessage, "%f,%f,%f\n", power_heat_data_t.chassis_power, power_scale * initial_total_power, initial_total_power);
     // sprintf(judgeMessage, "%d\n",get_yaw_gimbal_motor_measure_point()->ecd);
 
-    sprintf(judgeMessage, "%d\n", cboard_data.data.mode);
+//    sprintf(judgeMessage, "%d\n",cboard_data.data.channel_0);
+//    sprintf(judgeMessage, "OK\n");
 
     // sprintf(judgeMessage, "%d\n", ui_self_id);
     HAL_UART_Transmit(&huart1, (uint8_t *)judgeMessage, strlen(judgeMessage), 0x2F);

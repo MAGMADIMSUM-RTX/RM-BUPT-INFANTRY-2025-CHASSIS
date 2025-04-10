@@ -11,11 +11,11 @@
 
 // 常量定义
 #define TASK_GAP 1                           // 任务间隔
-#define SPIN_SPEED 3000                        // 自旋速度
+uint16_t SPIN_SPEED=2000;                        // 自旋速度
 #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // 遥控器到底盘速度比例
 #define CHASSIS_Acceleration 15              // 底盘加速度
 #define CHASSIS_MaxSpeed 8000                // 底盘最大速度 //TODO 观察是否为最大速度
-#define ECD_DEVIATION 5856                   // YAW轴电机偏差
+#define ECD_DEVIATION 0                   // YAW轴电机偏差
 
 // PID参数
 #define M3508_SPEED_P 18.1
@@ -214,6 +214,9 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
     if (chassis_behaviour == CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW)
     {
         static int16_t spin_direction = 0;
+			
+			SPIN_SPEED-=cboard_data.data.channel_0/500;
+			
         if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
             spin_direction = SPIN_SPEED;
         else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)

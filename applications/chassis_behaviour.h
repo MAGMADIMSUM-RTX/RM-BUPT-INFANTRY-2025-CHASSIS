@@ -67,12 +67,14 @@ enum RobotState_e
 
 typedef struct
 {
+//		uint8_t online_flag;
     int16_t channel_0;
     int16_t channel_2;
     int16_t channel_3;
     enum chassis_spinner_e mode;
     uint8_t keyboard;
 } can_send_encode_data_s;
+
 // typedef struct
 // {
 //     int16_t channel_0;
