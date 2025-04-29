@@ -40,7 +40,7 @@
 #include "bsp_can.h"
 #include "pid.h"
 #include "remote.h"
-#include "string.h" // Ìí¼Óstring.hÒÔÊ¹ÓÃstrlenº¯Êý
+#include "string.h" // ï¿½ï¿½ï¿½ï¿½string.hï¿½ï¿½Ê¹ï¿½ï¿½strlenï¿½ï¿½ï¿½ï¿½
 #include "chassis_behaviour.h"
 /* USER CODE END Includes */
 
@@ -85,7 +85,7 @@ char rxmessage[BUFFERSIZE] = {0};
 uint8_t judgeMessage[512] = {0};
 uint8_t remoteMessage[36] = {0};
 uint8_t status = 0;
-volatile uint8_t uart_tx_complete = 1; // DMA·¢ËÍÍê³É±êÖ¾
+volatile uint8_t uart_tx_complete = 1; // DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½Ö¾
 
 extern can_send_data_channel_u cboard_data;
 extern RC_Ctl_t remoteCtrl[2];
@@ -115,7 +115,8 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		cboard_data.data.channel_0=remoteCtrl[0].rc.dial;
 		cboard_data.data.channel_2=-remoteCtrl[0].rc.rockerlx;
 		cboard_data.data.channel_3=remoteCtrl[0].rc.rockerly;
-		switch(remoteCtrl[0].rc.switchRight)
+    cboard_data.data.switch_left = remoteCtrl[0].rc.switchLeft;
+    switch(remoteCtrl[0].rc.switchRight)
 		{
 			case 1:{
 		cboard_data.data.mode = 2;
@@ -224,7 +225,7 @@ int main(void)
   {
 //    if(uart_tx_complete)
     {
-      uart_tx_complete = 0; // Çå³ý±êÖ¾£¬±íÊ¾ÕýÔÚ´«Êä
+      uart_tx_complete = 0; // ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½
       // HAL_UART_DMAStop(&huart1);
       HAL_UART_Transmit_DMA(&huart1, (uint8_t *)"Hello!", strlen("Hello!"));
     }
@@ -289,12 +290,12 @@ int fputc(int ch, FILE *f)
   return ch;
 }
 
-// Ìí¼ÓUART DMA´«ÊäÍê³É»Øµ÷º¯Êý
+// ï¿½ï¿½ï¿½ï¿½UART DMAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É»Øµï¿½ï¿½ï¿½ï¿½ï¿½
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART1)
   {
-    uart_tx_complete = 1; // ÉèÖÃ´«ÊäÍê³É±êÖ¾
+    uart_tx_complete = 1; // ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½Ö¾
   }
 }
 /* USER CODE END 4 */
@@ -316,7 +317,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if (htim->Instance == TIM5) // TIM5ÊÇ¼ÆËãCPUÕ¼ÓÃÂÊµÄ¶¨Ê±Æ÷
+  if (htim->Instance == TIM5) // TIM5ï¿½Ç¼ï¿½ï¿½ï¿½CPUÕ¼ï¿½ï¿½ï¿½ÊµÄ¶ï¿½Ê±ï¿½ï¿½
   {
     ulHighFrequencyTimerTicks++;
   }

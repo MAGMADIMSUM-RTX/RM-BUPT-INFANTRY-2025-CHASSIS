@@ -14,18 +14,18 @@
 
 typedef enum
 {
-    CHASSIS_ZERO_FORCE,                 // chassis will be like no power,µ×ÅÌÎÞÁ¦, ¸úÃ»ÉÏµçÄÇÑù
-    CHASSIS_NO_MOVE,                    // chassis will be stop,µ×ÅÌ±£³Ö²»¶¯
-    CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW, // chassis will follow gimbal, usually in infantry,Õý³£²½±øµ×ÅÌ¸úËæÔÆÌ¨
+    CHASSIS_ZERO_FORCE,                 // chassis will be like no power,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Ã»ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½
+    CHASSIS_NO_MOVE,                    // chassis will be stop,ï¿½ï¿½ï¿½Ì±ï¿½ï¿½Ö²ï¿½ï¿½ï¿½
+    CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW, // chassis will follow gimbal, usually in infantry,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨
                                         // CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW, // chassis will follow chassis yaw angle, usually in engineer,
                                         //                                      // because chassis does have gyro sensor, its yaw angle is calculed by gyro in gimbal and gimbal motor angle,
                                         //                                      // if you have a gyro sensor in chassis, please updata yaw, pitch, roll angle in "chassis_feedback_update"  function
-                                        //                                      // ¹¤³Ìµ×ÅÌ½Ç¶È¿ØÖÆµ×ÅÌ£¬ÓÉÓÚµ×ÅÌÎ´ÓÐÍÓÂÝÒÇ£¬¹Ê¶ø½Ç¶ÈÊÇ¼õÈ¥ÔÆÌ¨½Ç¶È¶øµÃµ½£¬
-                                        //                                      // Èç¹ûÓÐµ×ÅÌÍÓÂÝÒÇÇë¸üÐÂµ×ÅÌµÄyaw£¬pitch£¬roll½Ç¶È ÔÚchassis_feedback_updateº¯ÊýÖÐ
+                                        //                                      // ï¿½ï¿½ï¿½Ìµï¿½ï¿½Ì½Ç¶È¿ï¿½ï¿½Æµï¿½ï¿½Ì£ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½Ê¶ï¿½ï¿½Ç¶ï¿½ï¿½Ç¼ï¿½È¥ï¿½ï¿½Ì¨ï¿½Ç¶È¶ï¿½ï¿½Ãµï¿½ï¿½ï¿½
+                                        //                                      // ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½Ìµï¿½yawï¿½ï¿½pitchï¿½ï¿½rollï¿½Ç¶ï¿½ ï¿½ï¿½chassis_feedback_updateï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
        CHASSIS_NO_FOLLOW_YAW,              // chassis does not follow angle, angle is open-loop,but wheels have closed-loop speed
-    //                                      // µ×ÅÌ²»¸úËæ½Ç¶È£¬½Ç¶ÈÊÇ¿ª»·µÄ£¬µ«ÂÖ×ÓÊÇÓÐËÙ¶È»·
+    //                                      // ï¿½ï¿½ï¿½Ì²ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶È£ï¿½ï¿½Ç¶ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È»ï¿½
     // CHASSIS_OPEN                         // the value of remote control will mulitiply a value, get current value that will be sent to can bus
-    //                                      //  Ò£¿ØÆ÷µÄÖµ³ËÒÔ±ÈÀý³ÉµçÁ÷Öµ Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
+    //                                      //  Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½Ô±ï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½ï¿½Öµ Ö±ï¿½Ó·ï¿½ï¿½Íµï¿½canï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 } chassis_behaviour_e;
 
 enum chassis_spinner_e
@@ -36,14 +36,14 @@ enum chassis_spinner_e
 };
 
 // uint8_t cboard_data[8];
-// shift ¿ªÆôÄ¦²ÁÂÖ£¬ctrl¹Ø±ÕÄ¦²ÁÂÖ
-// Êó±ê×ó¼ü°´Ò»ÏÂ·¢ÉäÒ»¸ö£¬°´×¡Á¬·¢£¬ÓÒ¼ü°´×¡ÔÊÐínuc¿ØÖÆ·¢Éä£¨nuc¿ÉÒÔÑ¡Ôñµ¥·¢»òÕßÁ¬·¢£©
-// cvb½øÈë²»Í¬³µµÄÄ£Ê½
-// z¿ªÆô×ÔÃé
-// x¹Ø±Õ×ÔÃé
-// Êó±êÉÏÏÂpitch£¬×óÓÒ£ºÔÚbadyaw³µÀïÊÇÕûÌå×óÓÒÐý×ª£¬ÔÚÆÕÍ¨³µºÍÐ¡ÍÓÂÝ³µÀïÊÇÔÆÌ¨¶ÀÁ¢×óÓÒÐý×ª
-// Ç°ºó¿ØÖÆÓÐÁ½ÖÖ¡£es»òÕßws¡£
-// ÔÆÌ¨ÔÚÒ»¶¨Ê±¼äÄÚ¿ØÖÆÎÞ·¨µ½´ïÖ¸¶¨Î»ÖÃ£¬¾Í·ÅÆú¿ØÖÆ
+// shift ï¿½ï¿½ï¿½ï¿½Ä¦ï¿½ï¿½ï¿½Ö£ï¿½ctrlï¿½Ø±ï¿½Ä¦ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Â·ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½ï¿½ï¿½×¡ï¿½ï¿½ï¿½ï¿½nucï¿½ï¿½ï¿½Æ·ï¿½ï¿½ä£¨nucï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ñµ¥·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// cvbï¿½ï¿½ï¿½ë²»Í¬ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+// zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// xï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pitchï¿½ï¿½ï¿½ï¿½ï¿½Ò£ï¿½ï¿½ï¿½badyawï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½Ý³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ª
+// Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½esï¿½ï¿½ï¿½ï¿½wsï¿½ï¿½
+// ï¿½ï¿½Ì¨ï¿½ï¿½Ò»ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½Î»ï¿½Ã£ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 // enum RobotState_e
 // {
 //     RobotState_e_Powerless = 0,
@@ -73,6 +73,7 @@ typedef struct
     int16_t channel_3;
     enum chassis_spinner_e mode;
     uint8_t keyboard;
+    uint8_t switch_left;
 } can_send_encode_data_s;
 
 // typedef struct

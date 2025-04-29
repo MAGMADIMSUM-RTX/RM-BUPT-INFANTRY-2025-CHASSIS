@@ -1,3 +1,12 @@
+/*
+ * @Author: MAGMADIMSUM madmaliu@bupt.edu.cn
+ * @Date: 2025-03-25 16:22:21
+ * @LastEditors: MAGMADIMSUM madmaliu@bupt.edu.cn
+ * @LastEditTime: 2025-04-29 09:54:37
+ * @FilePath: \chassis_bache\applications\chassis_task.h
+ * @Description:
+ *
+ */
 #ifndef CHASSIAS_TASK_H
 #define CHASSIAS_TASK_H
 
@@ -7,36 +16,40 @@
 
 // typedef struct
 // {
-//   const RC_ctrl_t *chassis_RC;               //µ×ÅÌÊ¹ÓÃµÄÒ£¿ØÆ÷Ö¸Õë, the point to remote control
-//   const fp32 *chassis_INS_angle;             //the point to the euler angle of gyro sensor.»ñÈ¡ÍÓÂÝÒÇ½âËã³öµÄÅ·À­½ÇÖ¸Õë
-//   chassis_mode_e chassis_mode;               //state machine. µ×ÅÌ¿ØÖÆ×´Ì¬»ú
-//   chassis_mode_e last_chassis_mode;          //last state machine.µ×ÅÌÉÏ´Î¿ØÖÆ×´Ì¬»ú
-//   chassis_motor_t motor_chassis[4];          //chassis motor data.µ×ÅÌµç»úÊý¾Ý
-//   pid_type_def motor_speed_pid[4];             //motor speed PID.µ×ÅÌµç»úËÙ¶Èpid
-//   pid_type_def chassis_angle_pid;              //follow angle PID.µ×ÅÌ¸úËæ½Ç¶Èpid
+//   const RC_ctrl_t *chassis_RC;               //ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ãµï¿½Ò£ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½, the point to remote control
+//   const fp32 *chassis_INS_angle;             //the point to the euler angle of gyro sensor.ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ç½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å·ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+//   chassis_mode_e chassis_mode;               //state machine. ï¿½ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½
+//   chassis_mode_e last_chassis_mode;          //last state machine.ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Î¿ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½
+//   chassis_motor_t motor_chassis[4];          //chassis motor data.ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//   pid_type_def motor_speed_pid[4];             //motor speed PID.ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½Ù¶ï¿½pid
+//   pid_type_def chassis_angle_pid;              //follow angle PID.ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½ï¿½Ç¶ï¿½pid
 
-//   first_order_filter_type_t chassis_cmd_slow_set_vx;  //use first order filter to slow set-point.Ê¹ÓÃÒ»½×µÍÍ¨ÂË²¨¼õ»ºÉè¶¨Öµ
-//   first_order_filter_type_t chassis_cmd_slow_set_vy;  //use first order filter to slow set-point.Ê¹ÓÃÒ»½×µÍÍ¨ÂË²¨¼õ»ºÉè¶¨Öµ
+//   first_order_filter_type_t chassis_cmd_slow_set_vx;  //use first order filter to slow set-point.Ê¹ï¿½ï¿½Ò»ï¿½×µï¿½Í¨ï¿½Ë²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è¶¨Öµ
+//   first_order_filter_type_t chassis_cmd_slow_set_vy;  //use first order filter to slow set-point.Ê¹ï¿½ï¿½Ò»ï¿½×µï¿½Í¨ï¿½Ë²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è¶¨Öµ
 
-//   fp32 vx;                          //chassis vertical speed, positive means forward,unit m/s. µ×ÅÌËÙ¶È Ç°½ø·½Ïò Ç°ÎªÕý£¬µ¥Î» m/s
-//   fp32 vy;                          //chassis horizontal speed, positive means letf,unit m/s.µ×ÅÌËÙ¶È ×óÓÒ·½Ïò ×óÎªÕý  µ¥Î» m/s
-//   fp32 wz;                          //chassis rotation speed, positive means counterclockwise,unit rad/s.µ×ÅÌÐý×ª½ÇËÙ¶È£¬ÄæÊ±ÕëÎªÕý µ¥Î» rad/s
-//   fp32 vx_set;                      //chassis set vertical speed,positive means forward,unit m/s.µ×ÅÌÉè¶¨ËÙ¶È Ç°½ø·½Ïò Ç°ÎªÕý£¬µ¥Î» m/s
-//   fp32 vy_set;                      //chassis set horizontal speed,positive means left,unit m/s.µ×ÅÌÉè¶¨ËÙ¶È ×óÓÒ·½Ïò ×óÎªÕý£¬µ¥Î» m/s
-//   fp32 wz_set;                      //chassis set rotation speed,positive means counterclockwise,unit rad/s.µ×ÅÌÉè¶¨Ðý×ª½ÇËÙ¶È£¬ÄæÊ±ÕëÎªÕý µ¥Î» rad/s
-//   fp32 chassis_relative_angle;      //the relative angle between chassis and gimbal.µ×ÅÌÓëÔÆÌ¨µÄÏà¶Ô½Ç¶È£¬µ¥Î» rad
-//   fp32 chassis_relative_angle_set;  //the set relative angle.ÉèÖÃÏà¶ÔÔÆÌ¨¿ØÖÆ½Ç¶È
-//   fp32 chassis_yaw_set;             
+//   fp32 vx;                          //chassis vertical speed, positive means forward,unit m/s. ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç°Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î» m/s
+//   fp32 vy;                          //chassis horizontal speed, positive means letf,unit m/s.ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½Îªï¿½ï¿½  ï¿½ï¿½Î» m/s
+//   fp32 wz;                          //chassis rotation speed, positive means counterclockwise,unit rad/s.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Îªï¿½ï¿½ ï¿½ï¿½Î» rad/s
+//   fp32 vx_set;                      //chassis set vertical speed,positive means forward,unit m/s.ï¿½ï¿½ï¿½ï¿½ï¿½è¶¨ï¿½Ù¶ï¿½ Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç°Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î» m/s
+//   fp32 vy_set;                      //chassis set horizontal speed,positive means left,unit m/s.ï¿½ï¿½ï¿½ï¿½ï¿½è¶¨ï¿½Ù¶ï¿½ ï¿½ï¿½ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î» m/s
+//   fp32 wz_set;                      //chassis set rotation speed,positive means counterclockwise,unit rad/s.ï¿½ï¿½ï¿½ï¿½ï¿½è¶¨ï¿½ï¿½×ªï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Îªï¿½ï¿½ ï¿½ï¿½Î» rad/s
+//   fp32 chassis_relative_angle;      //the relative angle between chassis and gimbal.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½Ô½Ç¶È£ï¿½ï¿½ï¿½Î» rad
+//   fp32 chassis_relative_angle_set;  //the set relative angle.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½Æ½Ç¶ï¿½
+//   fp32 chassis_yaw_set;
 
-//   fp32 vx_max_speed;  //max forward speed, unit m/s.Ç°½ø·½Ïò×î´óËÙ¶È µ¥Î»m/s
-//   fp32 vx_min_speed;  //max backward speed, unit m/s.ºóÍË·½Ïò×î´óËÙ¶È µ¥Î»m/s
-//   fp32 vy_max_speed;  //max letf speed, unit m/s.×ó·½Ïò×î´óËÙ¶È µ¥Î»m/s
-//   fp32 vy_min_speed;  //max right speed, unit m/s.ÓÒ·½Ïò×î´óËÙ¶È µ¥Î»m/s
-//   fp32 chassis_yaw;   //the yaw angle calculated by gyro sensor and gimbal motor.ÍÓÂÝÒÇºÍÔÆÌ¨µç»úµþ¼ÓµÄyaw½Ç¶È
-//   fp32 chassis_pitch; //the pitch angle calculated by gyro sensor and gimbal motor.ÍÓÂÝÒÇºÍÔÆÌ¨µç»úµþ¼ÓµÄpitch½Ç¶È
-//   fp32 chassis_roll;  //the roll angle calculated by gyro sensor and gimbal motor.ÍÓÂÝÒÇºÍÔÆÌ¨µç»úµþ¼ÓµÄroll½Ç¶È
+//   fp32 vx_max_speed;  //max forward speed, unit m/s.Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½Î»m/s
+//   fp32 vx_min_speed;  //max backward speed, unit m/s.ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½Î»m/s
+//   fp32 vy_max_speed;  //max letf speed, unit m/s.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½Î»m/s
+//   fp32 vy_min_speed;  //max right speed, unit m/s.ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ ï¿½ï¿½Î»m/s
+//   fp32 chassis_yaw;   //the yaw angle calculated by gyro sensor and gimbal motor.ï¿½ï¿½ï¿½ï¿½ï¿½Çºï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½yawï¿½Ç¶ï¿½
+//   fp32 chassis_pitch; //the pitch angle calculated by gyro sensor and gimbal motor.ï¿½ï¿½ï¿½ï¿½ï¿½Çºï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½pitchï¿½Ç¶ï¿½
+//   fp32 chassis_roll;  //the roll angle calculated by gyro sensor and gimbal motor.ï¿½ï¿½ï¿½ï¿½ï¿½Çºï¿½ï¿½ï¿½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½rollï¿½Ç¶ï¿½
 
 // } chassis_move_t;
 
-
+typedef struct
+{
+    uint16_t cmd_id;
+    float data[3];
+} MessageResult;
 #endif
