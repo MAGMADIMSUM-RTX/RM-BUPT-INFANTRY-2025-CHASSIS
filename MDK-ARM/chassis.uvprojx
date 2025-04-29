@@ -800,6 +800,11 @@
               <FilePath>..\applications\referee_usart_task.c</FilePath>
             </File>
             <File>
+              <FileName>ui_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\applications\ui\ui_interface.c</FilePath>
+            </File>
+            <File>
               <FileName>ui.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\applications\ui\ui.c</FilePath>
@@ -810,9 +815,9 @@
               <FilePath>..\applications\ui\ui_g_Ungroup_0.c</FilePath>
             </File>
             <File>
-              <FileName>ui_interface.c</FileName>
+              <FileName>ui_g_dynamic_0.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\applications\ui\ui_interface.c</FilePath>
+              <FilePath>..\applications\ui\ui_g_dynamic_0.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -8,37 +8,52 @@
 #include "arm_math.h"
 #include "chassis_behaviour.h"
 #include "chassis_power_control.h"
-#include "chassis_task.h"
+#include "referee.h"
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#define TASK_GAP 1                           // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-uint16_t SPIN_SPEED = 2000;                  // ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
-#define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È±ï¿½ï¿½ï¿½
-#define CHASSIS_Acceleration 15              // ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½Ù¶ï¿½
-#define CHASSIS_MaxSpeed 8000                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ //TODO ï¿½Û²ï¿½ï¿½Ç·ï¿½Îªï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
-#define ECD_DEVIATION 0                      // YAWï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½
+// ³£Á¿¶¨Òå
+#define TASK_GAP 1 // ÈÎÎñ¼ä¸ô
+// #define SPIN_SPEED 7500                      // ×ÔÐýËÙ¶È
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 8 // Ò£¿ØÆ÷µ½µ×ÅÌËÙ¶È±ÈÀý
 
-// PIDï¿½ï¿½ï¿½ï¿½
+// #define SPIN_SPEED 8000                      // ×ÔÐýËÙ¶È  //96W					1400
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 16 // Ò£¿ØÆ÷µ½µ×ÅÌËÙ¶È±ÈÀýq
+// #define SPIN_SPEED 7000                      // ×ÔÐýËÙ¶È  //85W
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 12 // Ò£¿ØÆ÷µ½µ×ÅÌËÙ¶È±ÈÀý		1024
+// #define SPIN_SPEED 6000                      // ×ÔÐýËÙ¶È  //70W					660
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 12 // Ò£¿ØÆ÷µ½µ×ÅÌËÙ¶È±ÈÀý
+// #define SPIN_SPEED 5000                      // ×ÔÐýËÙ¶È  //50W         500
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 10 // Ò£¿ØÆ÷µ½µ×ÅÌËÙ¶È±ÈÀý
+// #define SPIN_SPEED 4000                      // ×ÔÐýËÙ¶È  //45W  20¡ã 400
+// #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 8 // Ò£¿ØÆ÷µ½µ×ÅÌËÙ¶È±ÈÀý
+#define CHASSIS_Acceleration 60 // µ×ÅÌ¼ÓËÙ¶È
+#define CHASSIS_MaxSpeed 8000   // µ×ÅÌ×î´óËÙ¶È //TODO ¹Û²ìÊÇ·ñÎª×î´óËÙ¶È
+#define ECD_DEVIATION 5856      // YAWÖáµç»úÆ«²î
+
+// PID²ÎÊý
 #define M3508_SPEED_P 18.1
 #define M3508_SPEED_I 0.024
 #define M3508_SPEED_D 50.73
 #define M3508_SPEED_MAXINTERGRAL 10
 #define M3508_SPEED_MAXOutput 16384
 
-// ï¿½ï¿½ï¿½Ì°ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+// ¼üÅÌ°´¼üÎ»ÑÚÂë
 #define KEY_W 0x80
 #define KEY_S 0x20
 #define KEY_A 0x40
 #define KEY_D 0x10
-#define KEY_SHIFT 0x01
+#define KEY_CTRL 0x01
 
-// È«ï¿½Ö±ï¿½ï¿½ï¿½
+// È«¾Ö±äÁ¿
 PID_TypeDef Motor_VPID[4] = {0};
 int16_t classicTargetSpeed[4] = {0}, classicTargetSpeed_r[4] = {0}, classicSpeed[4] = {0};
+
+uint16_t SPIN_SPEED = 4000;
+uint8_t REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO = 8;
 
 extern can_send_data_channel_u cboard_data;
 can_send_data_channel_u last_cboard_data;
 enum chassis_spinner_e chassis_spin_state;
+fp32 chassis_direct = 0.0f;
 
 typedef enum
 {
@@ -51,9 +66,7 @@ int16_t cordinate_x = 0, cordinate_y = 0;
 chassis_behaviour_e chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
 TickType_t xLastWakeTime = 0;
 
-MessageResult Msg;
-
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// º¯ÊýÉùÃ÷
 void ChassisGetSpeed(void);
 void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard_lx, int16_t cboard_ly);
 void ChassisMotorSpeedAccelerationCalculation(void);
@@ -65,7 +78,7 @@ void chassis_task(void *argument)
     osDelay(10);
     const TickType_t xFrequency = pdMS_TO_TICKS(TASK_GAP);
 
-    // PIDï¿½ï¿½Ê¼ï¿½ï¿½
+    // PID³õÊ¼»¯
     for (int i = 0; i < 4; i++)
     {
         PID_Init(&Motor_VPID[i], M3508_SPEED_P, M3508_SPEED_I, M3508_SPEED_D,
@@ -76,23 +89,22 @@ void chassis_task(void *argument)
     last_cboard_data = cboard_data;
     chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
 
-    // CDC_Transmit_FS("Hdihsa", strlen("Hdihsa"));
     while (1)
     {
         xLastWakeTime = xTaskGetTickCount();
 
-        // ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½Ä£Ê½
+        // ¸üÐÂ¿ØÖÆÄ£Ê½
         UpdateChassisMode();
 
-        // ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½Ù¶ï¿½
+        // »ñÈ¡µ±Ç°ËÙ¶È
         ChassisGetSpeed();
 
-        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ä£Ê½ï¿½ÂµÄµï¿½ï¿½Ì¿ï¿½ï¿½ï¿½
+        // ´¦Àí²»Í¬Ä£Ê½ÏÂµÄµ×ÅÌ¿ØÖÆ
         if (chassis_behaviour != CHASSIS_ZERO_FORCE)
         {
             if (chassis_behaviour == CHASSIS_NO_MOVE)
             {
-                // ï¿½ï¿½ï¿½Æ¶ï¿½Ä£Ê½ï¿½ï¿½ï¿½Ù¶ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½Îª0
+                // ÎÞÒÆ¶¯Ä£Ê½£¬ËÙ¶ÈÄ¿±êÉèÎª0
                 for (int i = 0; i < 4; i++)
                 {
                     classicTargetSpeed_r[i] = 0;
@@ -100,27 +112,20 @@ void chassis_task(void *argument)
             }
             else
             {
-                // ï¿½ï¿½ï¿½ï¿½Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                // ´¦ÀíÒ£¿ØÆ÷»ò¼üÅÌÊäÈë
                 static int16_t control_x = 0, control_y = 0;
                 control_x = 0;
                 control_y = 0;
 
                 if (remote_mode_switch == contorller)
                 {
-                    // Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-                    if (cboard_data.data.switch_left == 1)
-                    {
-                        control_x = ((int16_t)Msg.data[0]) << 6;
-                        control_y = ((int16_t)Msg.data[1]) << 6;
-                    }
-                    else
-                    {
-                        control_x = cboard_data.data.channel_2;
-                        control_y = cboard_data.data.channel_3;
-                    }
+                    // Ò£¿ØÆ÷¿ØÖÆ
+                    control_x = cboard_data.data.channel_2;
+                    control_y = cboard_data.data.channel_3;
                 }
                 else
                 {
+
                     if (cboard_data.data.keyboard & KEY_D)
                         control_x = 660;
                     if (cboard_data.data.keyboard & KEY_A)
@@ -131,18 +136,18 @@ void chassis_task(void *argument)
                         control_y = -660;
                 }
 
-                // ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ù¶ï¿½
+                // ¼ÆËãÄ¿±êËÙ¶È
                 ChassisGetTargetSpeed(chassis_behaviour, control_x, control_y);
 
-                // ï¿½ï¿½ï¿½Ù¶È¿ï¿½ï¿½ï¿½
+                // ¼ÓËÙ¶È¿ØÖÆ
                 ChassisMotorSpeedAccelerationCalculation();
             }
 
-            // PIDï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            // PID¿ØÖÆ¼°¹¦ÂÊÏÞÖÆ
             ChassisPIDCalculate();
             chassis_power_control();
 
-            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            // Êä³öµ½µç»ú
             CAN_cmd_chassis((int16_t)Motor_VPID[0].Output,
                             (int16_t)Motor_VPID[1].Output,
                             (int16_t)Motor_VPID[2].Output,
@@ -152,6 +157,7 @@ void chassis_task(void *argument)
         }
         else
         {
+            // ÁãÁ¦¾ØÄ£Ê½
             CAN_cmd_chassis(0, 0, 0, 0);
         }
 
@@ -159,10 +165,13 @@ void chassis_task(void *argument)
     }
 }
 
-// ï¿½ï¿½ï¿½Âµï¿½ï¿½Ì¿ï¿½ï¿½ï¿½Ä£Ê½
+// ¸üÐÂµ×ÅÌ¿ØÖÆÄ£Ê½
 void UpdateChassisMode(void)
 {
-    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Ð»ï¿½
+
+    SPIN_SPEED = get_spinner_speed();
+    REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO = get_chassis_speed_ratio();
+    // ¼ì²â¿ØÖÆÄ£Ê½ÇÐ»»
     if (cboard_data.data.keyboard != last_cboard_data.data.keyboard)
     {
         remote_mode_switch = keyboard;
@@ -175,27 +184,27 @@ void UpdateChassisMode(void)
         remote_mode_switch = contorller;
     }
 
-    // ï¿½ï¿½ï¿½Ý²ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Îª
+    // ¸ù¾Ý²»Í¬¿ØÖÆÄ£Ê½ÉèÖÃµ×ÅÌÐÐÎª
     if (remote_mode_switch == contorller)
     {
         chassis_spin_state = cboard_data.data.mode;
     }
     else if (remote_mode_switch == keyboard)
     {
-        if ((last_cboard_data.data.keyboard & KEY_SHIFT) == 0 && //? ï¿½ï¿½ï¿½shiftï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
-            (cboard_data.data.keyboard & KEY_SHIFT) !=
-                (last_cboard_data.data.keyboard & KEY_SHIFT))
+        if ((last_cboard_data.data.keyboard & KEY_CTRL) == 0 && //? µã»÷shift¼üÇÐ»»µ×ÅÌ×ÔÐý×´Ì¬
+            (cboard_data.data.keyboard & KEY_CTRL) !=
+                (last_cboard_data.data.keyboard & KEY_CTRL))
             if (chassis_spin_state == CHASSIS_Spinner_Stop)
                 chassis_spin_state = xTaskGetTickCount() % 2 == 0 ? CHASSIS_Spinner_Clockwise : CHASSIS_Spinner_AntiClockwise;
             else
                 chassis_spin_state = CHASSIS_Spinner_Stop;
     }
 
-    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½
+    // ±£´æÉÏÒ»´ÎµÄÊý¾Ý
     last_cboard_data = cboard_data;
 }
 
-// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½Ù¶ï¿½
+// »ñÈ¡µç»úµ±Ç°ËÙ¶È
 void ChassisGetSpeed(void)
 {
     for (int i = 0; i < 4; i++)
@@ -204,13 +213,14 @@ void ChassisGetSpeed(void)
     }
 }
 
-// ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ù¶ï¿½
+// ¼ÆËãÄ¿±êËÙ¶È
 void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard_lx, int16_t cboard_ly)
 {
+
     // static uint32_t time;
     static chassis_behaviour_e last_chassis_behaviour = CHASSIS_ZERO_FORCE;
 
-    // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ù¶ï¿½Îª0
+    // ³õÊ¼»¯ËùÓÐµç»úÄ¿±êËÙ¶ÈÎª0
     for (int i = 0; i < 4; i++)
     {
         classicTargetSpeed[i] = 0;
@@ -218,23 +228,17 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
 
     last_chassis_behaviour = chassis_behaviour;
 
-    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ÎªÄ£Ê½
+    // ´¦Àí²»Í¬ÐÐÎªÄ£Ê½
     if (chassis_behaviour == CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW)
     {
         static int16_t spin_direction = 0;
-        if (cboard_data.data.switch_left == 1)
-        spin_direction = ((int16_t)Msg.data[2]) <<6 ;
+        if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
+            spin_direction = SPIN_SPEED;
+        else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
+            spin_direction = SPIN_SPEED;
+        // spin_direction = -SPIN_SPEED;
         else
-        {
-            SPIN_SPEED -= cboard_data.data.channel_0 / 500;
-
-            if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
-                spin_direction = SPIN_SPEED;
-            else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
-                spin_direction = -SPIN_SPEED;
-            else
-                spin_direction = 0;
-        }
+            spin_direction = 0;
 
         for (int i = 0; i < 4; i++)
         {
@@ -249,22 +253,32 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
         }
     }
 
-    static fp32 chassis_direct = 0.0f;
-    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ï¿½ï¿½
-    chassis_direct = ((get_yaw_gimbal_motor_measure_point()->ecd - ECD_DEVIATION) / 8192.0f) * 2 * PI;
+    // ¼ÆËãµ×ÅÌ³¯Ïò
+    //		int16_t piancha =chassis_spin_state==CHASSIS_Spinner_Stop?0: chassis_spin_state==CHASSIS_Spinner_Clockwise?-(get_chassis_power_max()):(get_chassis_power_max());
 
-    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Âµï¿½ï¿½Ë¶ï¿½ï¿½ï¿½ï¿½ï¿½
+    static int16_t offsets;
+
+    if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
+        offsets = -get_spinner_offsets();
+    else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
+        offsets = get_spinner_offsets();
+    else
+        offsets = 0;
+
+    chassis_direct = ((get_yaw_gimbal_motor_measure_point()->ecd - ECD_DEVIATION + offsets) / 8192.0f) * 2 * PI;
+
+    // ¼ÆËã×ø±êÏµÏÂµÄÔË¶¯·ÖÁ¿
     cordinate_x = (cboard_lx * arm_cos_f32(chassis_direct) - cboard_ly * arm_sin_f32(chassis_direct)) * REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO;
     cordinate_y = (cboard_lx * arm_sin_f32(chassis_direct) + cboard_ly * arm_cos_f32(chassis_direct)) * REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO;
 
-    // ï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½Ñ§Ä£ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½Ù¶ï¿½
-    classicTargetSpeed[0] += (cordinate_x + cordinate_y); // ï¿½ï¿½Ç°ï¿½ï¿½
-    classicTargetSpeed[1] += (cordinate_y - cordinate_x); // ï¿½ï¿½Ç°ï¿½ï¿½
-    classicTargetSpeed[2] -= (cordinate_x + cordinate_y); // ï¿½Òºï¿½ï¿½ï¿½
-    classicTargetSpeed[3] -= (cordinate_y - cordinate_x); // ï¿½ï¿½ï¿½ï¿½ï¿½
+    // ¸ù¾ÝÔË¶¯Ñ§Ä£ÐÍ¼ÆËãËÄ¸öÂÖ×ÓµÄËÙ¶È
+    classicTargetSpeed[0] += (cordinate_x + cordinate_y); // ×óÇ°ÂÖ
+    classicTargetSpeed[1] += (cordinate_y - cordinate_x); // ÓÒÇ°ÂÖ
+    classicTargetSpeed[2] -= (cordinate_x + cordinate_y); // ÓÒºóÂÖ
+    classicTargetSpeed[3] -= (cordinate_y - cordinate_x); // ×óºóÂÖ
 }
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// µç»ú¼ÓËÙ¶ÈÆ½»¬¿ØÖÆ
 void ChassisMotorSpeedAccelerationCalculation(void)
 {
     for (int i = 0; i < 4; i++)
@@ -284,7 +298,7 @@ void ChassisMotorSpeedAccelerationCalculation(void)
             classicTargetSpeed_r[i] = classicTargetSpeed[i];
         }
 
-        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+        // ÏÞÖÆ×î´óËÙ¶È
         if (classicTargetSpeed_r[i] > CHASSIS_MaxSpeed)
             classicTargetSpeed_r[i] = CHASSIS_MaxSpeed;
         else if (classicTargetSpeed_r[i] < -CHASSIS_MaxSpeed)
@@ -292,7 +306,7 @@ void ChassisMotorSpeedAccelerationCalculation(void)
     }
 }
 
-// PIDï¿½ï¿½ï¿½ï¿½
+// PID¼ÆËã
 void ChassisPIDCalculate(void)
 {
     for (int i = 0; i < 4; i++)
