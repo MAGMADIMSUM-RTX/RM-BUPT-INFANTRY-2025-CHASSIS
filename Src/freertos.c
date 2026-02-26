@@ -171,16 +171,16 @@ void MX_FREERTOS_Init(void) {
   ChassisHandle = osThreadNew(chassis_task, NULL, &Chassis_attributes);
 
   /* creation of uart */
-  uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
+  // uartHandle = osThreadNew(uart_task, NULL, &uart_attributes);
 
   /* creation of INS */
   INSHandle = osThreadNew(INS_task, NULL, &INS_attributes);
 
   /* creation of detect */
-  detectHandle = osThreadNew(detect_task, NULL, &detect_attributes);
+  // detectHandle = osThreadNew(detect_task, NULL, &detect_attributes);
 
   /* creation of referee_usart */
-  referee_usartHandle = osThreadNew(referee_usart_task, NULL, &referee_usart_attributes);
+  // referee_usartHandle = osThreadNew(referee_usart_task, NULL, &referee_usart_attributes);
 
   /* creation of UI */
 //  UIHandle = osThreadNew(ui_task, NULL, &UI_attributes);
@@ -208,7 +208,7 @@ __weak void check_online(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN check_online */
   /* Infinite loop */
-  // ³õÊ¼Ê±¹Ø±Õµ×ÅÌÈÎÎñºÍLEDÈÎÎñ£¬µÈ´ýÈ·ÈÏµç»úÔÚÏß
+  // ï¿½ï¿½Ê¼Ê±ï¿½Ø±Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½LEDï¿½ï¿½ï¿½ñ£¬µÈ´ï¿½È·ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   osThreadTerminate(ChassisHandle);
   osThreadTerminate(LEDHandle);
 
@@ -218,13 +218,13 @@ __weak void check_online(void *argument)
     {
       uint8_t motor_bit = (1 << i);
 
-      if (online_flag & motor_bit) // ¼ì²âµ½µç»úÔÚÏß
+      if (online_flag & motor_bit) // ï¿½ï¿½âµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       {
-        if (Motor_online.motor_online & motor_bit) // ÒÑµÇ¼ÇÔÚÏß£¬ÖØÖÃ¼ÆÊ±Æ÷
+        if (Motor_online.motor_online & motor_bit) // ï¿½ÑµÇ¼ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½Ê±ï¿½ï¿½
         {
           Motor_online.motor_ticks[i] = 0;
         }
-        else // Î´µÇ¼ÇÔÚÏß£¬±ê¼ÇÎªÔÚÏß
+        else // Î´ï¿½Ç¼ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
         {
           Motor_online.motor_online |= motor_bit;
 					
@@ -232,7 +232,7 @@ __weak void check_online(void *argument)
 
           if (!chassis_flag &&(
               ((motor_bit == 0x80 && Motor_online.motor_online & 0x0F) ||
-               (motor_bit & 0x0F && Motor_online.motor_online & 0x80)))) // ¼ì²âµ½c°åÔÚÏß£¬Æô¶¯µ×ÅÌÈÎÎñ
+               (motor_bit & 0x0F && Motor_online.motor_online & 0x80)))) // ï¿½ï¿½âµ½cï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
           {
             chassis_flag = 1;
             LEDHandle = osThreadNew(led_task, NULL, &LED_attributes);
@@ -240,23 +240,23 @@ __weak void check_online(void *argument)
           }
         }
       }
-      else if (Motor_online.motor_online & motor_bit) // ÒÑµÇ¼ÇÔÚÏßµ«Î´ÊÕµ½ÔÚÏßÐÅºÅ
+      else if (Motor_online.motor_online & motor_bit) // ï¿½ÑµÇ¼ï¿½ï¿½ï¿½ï¿½ßµï¿½Î´ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
       {
-        // Ôö¼Ó¼ÆÊ±Æ÷£¬³¬Ê±ºó±ê¼ÇÎªÀëÏß
+        // ï¿½ï¿½ï¿½Ó¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
         if (++Motor_online.motor_ticks[i] == CHECK_ONLINE_TIMEOUT_COUNT)
         {
           Motor_online.motor_online &= ~motor_bit;
           Motor_online.motor_ticks[i] = 0;
 
-          // ´¦Àíc°åÀëÏßÇé¿ö
-          if (!(Motor_online.motor_online & 0x0F) || !(Motor_online.motor_online & 0x80)) // c°åÀëÏß»òËÄ¸öÂÖ×Ó¶¼ÀëÏß
+          // ï¿½ï¿½ï¿½ï¿½cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+          if (((Motor_online.motor_online & 0x0F) != 0x0F) || !(Motor_online.motor_online & 0x80)) // cï¿½ï¿½ï¿½ï¿½ï¿½ß»ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½Ó¶ï¿½ï¿½ï¿½ï¿½ï¿½
           {
-            // ÉèÖÃµ×ÅÌÎªÁãÁ¦¾ØÄ£Ê½
+            // ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½
             chassis_behaviour = CHASSIS_ZERO_FORCE;
             osDelay(200);
-            // ·¢ËÍÍ£Ö¹ÃüÁî
+            // ï¿½ï¿½ï¿½ï¿½Í£Ö¹ï¿½ï¿½ï¿½ï¿½
             CAN_cmd_chassis(0, 0, 0, 0);
-            // ¹Ø±ÕÏà¹ØÈÎÎñ
+            // ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             if (chassis_flag)
             {
               osThreadTerminate(ChassisHandle);
@@ -267,7 +267,7 @@ __weak void check_online(void *argument)
         }
       }
     }
-    // ¸´Î»ÔÚÏß±êÖ¾£¬µÈ´ýÏÂÒ»ÂÖ¼ì²â
+    // ï¿½ï¿½Î»ï¿½ï¿½ï¿½ß±ï¿½Ö¾ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½Ò»ï¿½Ö¼ï¿½ï¿½
     online_flag = 0;
     osDelay(CHECK_ONLINE_TASK_DELAY);
   }

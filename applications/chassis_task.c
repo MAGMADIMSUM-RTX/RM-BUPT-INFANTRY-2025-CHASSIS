@@ -12,7 +12,6 @@
 
 // ��������
 #define TASK_GAP 1                           // ������
-uint16_t SPIN_SPEED = 2000;                  // �����ٶ�
 #define REMOTE_CTRL_TO_CHASSIS_SPEED_RATIO 4 // ң�����������ٶȱ���
 #define CHASSIS_Acceleration 15              // ���̼��ٶ�
 #define CHASSIS_MaxSpeed 8000                // ��������ٶ� //TODO �۲��Ƿ�Ϊ����ٶ�
@@ -47,6 +46,7 @@ typedef enum
 } remote_mode;
 remote_mode remote_mode_switch = contorller;
 
+int16_t SPIN_SPEED;
 int16_t cordinate_x = 0, cordinate_y = 0;
 chassis_behaviour_e chassis_behaviour = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
 TickType_t xLastWakeTime = 0;
@@ -132,7 +132,7 @@ void chassis_task(void *argument)
                 }
 
                 // ����Ŀ���ٶ�
-                ChassisGetTargetSpeed(chassis_behaviour, control_x, control_y);
+                ChassisGetTargetSpeed(chassis_behaviour, -control_x, control_y);
 
                 // ���ٶȿ���
                 ChassisMotorSpeedAccelerationCalculation();
@@ -168,6 +168,7 @@ void UpdateChassisMode(void)
         remote_mode_switch = keyboard;
     }
     else if (cboard_data.data.channel_0 != last_cboard_data.data.channel_0 ||
+             cboard_data.data.channel_1 != last_cboard_data.data.channel_1 ||
              cboard_data.data.channel_2 != last_cboard_data.data.channel_2 ||
              cboard_data.data.channel_3 != last_cboard_data.data.channel_3 ||
              cboard_data.data.mode != last_cboard_data.data.mode)
@@ -222,23 +223,16 @@ void ChassisGetTargetSpeed(chassis_behaviour_e chassis_behaviour, int16_t cboard
     if (chassis_behaviour == CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW)
     {
         static int16_t spin_direction = 0;
-        if (cboard_data.data.switch_left == 1)
-        spin_direction = ((int16_t)Msg.data[2]) <<6 ;
-        else
+        // if (cboard_data.data.switch_left == 1)
+        //     spin_direction = ((int16_t)Msg.data[2]) << 6;
+        // else
         {
-            SPIN_SPEED -= cboard_data.data.channel_0 / 500;
-
-            if (chassis_spin_state == CHASSIS_Spinner_Clockwise)
-                spin_direction = SPIN_SPEED;
-            else if (chassis_spin_state == CHASSIS_Spinner_AntiClockwise)
-                spin_direction = -SPIN_SPEED;
-            else
-                spin_direction = 0;
+            SPIN_SPEED = (0-cboard_data.data.channel_1) * 5;
         }
 
         for (int i = 0; i < 4; i++)
         {
-            classicTargetSpeed[i] = spin_direction;
+            classicTargetSpeed[i] = SPIN_SPEED;
         }
     }
     else if (chassis_behaviour == CHASSIS_NO_MOVE)

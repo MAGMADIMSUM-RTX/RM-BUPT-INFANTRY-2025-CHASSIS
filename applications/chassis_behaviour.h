@@ -69,6 +69,7 @@ typedef struct
 {
 //		uint8_t online_flag;
     int16_t channel_0;
+    int16_t channel_1;
     int16_t channel_2;
     int16_t channel_3;
     enum chassis_spinner_e mode;
